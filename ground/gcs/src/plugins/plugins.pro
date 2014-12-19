@@ -73,7 +73,6 @@ plugin_scope.depends += plugin_uavobjects
 plugin_scope.depends += plugin_uavtalk
 SUBDIRS += plugin_scope
 
-
 # UAVObject Browser gadget
 plugin_uavobjectbrowser.subdir = uavobjectbrowser
 plugin_uavobjectbrowser.depends = plugin_coreplugin
@@ -327,7 +326,6 @@ plugin_boards_openpilot.depends = plugin_coreplugin
 plugin_boards_openpilot.depends = plugin_uavobjects
 plugin_boards_openpilot.depends = plugin_uavobjectutil
 plugin_boards_openpilot.depends += plugin_uavobjectwidgetutils
-
 SUBDIRS += plugin_boards_openpilot
 
 # Quantec Networks GmbH
@@ -349,3 +347,9 @@ plugin_boards_stm.subdir = boards_stm
 plugin_boards_stm.depends = plugin_coreplugin
 plugin_boards_stm.depends = plugin_uavobjects
 SUBDIRS += plugin_boards_stm
+
+# Misc boards
+plugin_boards_misc.subdir = boards_misc
+plugin_boards_misc.depends = plugin_coreplugin
+plugin_boards_misc.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_misc
