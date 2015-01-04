@@ -1,17 +1,14 @@
 /**
  ******************************************************************************
- * @file       miscplugin.cpp
-<<<<<<< HEAD
- * @author     John Ihlein, Copyright (C) 2014
-=======
- * @author     John Ihlein, Copyright (C) 2014.
->>>>>>> GCS: Add board plugin for miscellaneous flight control boards
+ *
+ * @file       quanton.h
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup Boards_MiscPlugin Misc boards support Plugin
+ * @addtogroup Boards_Quantec Quantec boards support Plugin
  * @{
- * @brief Plugin to support miscellaneous flight control boards
+ * @brief Plugin to support boards by Quantec Networks GmbH
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,43 +25,27 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#ifndef AQ32_H
+#define AQ32_H
 
-#include "miscplugin.h"
-#include "aq32.h"
-#include "naze32pro.h"
-#include <QtPlugin>
+#include <coreplugin/iboardtype.h>
 
+class IBoardType;
 
-MiscPlugin::MiscPlugin()
+class AQ32 : public Core::IBoardType
 {
-   // Do nothing
-}
+public:
+    AQ32();
+    virtual ~AQ32();
 
-MiscPlugin::~MiscPlugin()
-{
-   // Do nothing
-}
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QStringList getSupportedProtocols();
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
+    virtual int queryMaxGyroRate();
+};
 
-bool MiscPlugin::initialize(const QStringList& args, QString *errMsg)
-{
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
-}
 
-void MiscPlugin::extensionsInitialized()
-{
-    /**
-     * Create the board objects here.
-     *
-     */
-    AQ32* aq32 = new AQ32();
-    addAutoReleasedObject(aq32);
-
-    Naze32Pro* naze32pro = new Naze32Pro();
-    addAutoReleasedObject(naze32pro);
-}
-
-void MiscPlugin::shutdown()
-{
-}
+#endif // AQ32_H

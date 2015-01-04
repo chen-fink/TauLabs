@@ -1,11 +1,12 @@
 ###############################################################################
 # @file       Makefile
-# @author     Tau Labs, http://taulabs.org, Copyright (C) 2013-2014
-# @addtogroup
+# @author     The OpenPilot Team, http://www.openpilot.org, Copyright (C) 2009.
+# @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
+# @addtogroup 
 # @{
-# @addtogroup
+# @addtogroup 
 # @{
-# @brief Makefile to build firmware for Naze32Pro.
+# @brief Makefile to build firmware for the Quanton board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
@@ -32,7 +33,7 @@ DEBUG ?= NO
 
 # List of modules to include
 MODULES = Sensors
-MODULES += Attitude
+MODULES += Attitude 
 MODULES += Actuator
 MODULES += ManualControl
 MODULES += Stabilization
@@ -40,23 +41,23 @@ MODULES += FirmwareIAP
 MODULES += Telemetry
 
 OPTMODULES += GPS
+OPTMODULES += AltitudeHold 
+OPTMODULES += VtolPathFollower 
+OPTMODULES += FixedWingPathFollower
+OPTMODULES += GroundPathFollower
+OPTMODULES += PathPlanner
 OPTMODULES += CameraStab
 OPTMODULES += Autotune
 OPTMODULES += TxPID
-OPTMODULES += GenericI2CSensor
-OPTMODULES += AltitudeHold
-OPTMODULES += PathPlanner
-OPTMODULES += VtolPathFollower
-OPTMODULES += FixedWingPathFollower
 OPTMODULES += VibrationAnalysis
 OPTMODULES += UAVOMavlinkBridge
-OPTMODULES += UAVOLighttelemetryBridge 
 OPTMODULES += Battery
 OPTMODULES += ComUsbBridge
-OPTMODULES += UAVORelay
 OPTMODULES += Airspeed/revolution
 OPTMODULES += UAVOHoTTBridge
 OPTMODULES += UAVOFrSKYSensorHubBridge
+OPTMODULES += UAVOLighttelemetryBridge
+OPTMODULES += PicoC
 OPTMODULES += UAVOFrSKYSPortBridge
 OPTMODULES += Geofence
 
@@ -69,23 +70,26 @@ MATHLIB = $(FLIGHTLIB)/math
 MATHLIBINC = $(FLIGHTLIB)/math
 RSCODE = $(FLIGHTLIB)/rscode
 RSCODEINC = $(FLIGHTLIB)/rscode
-PIOSSTM32F30X = $(PIOS)/STM32F30x
+PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
-APPLIBDIR = $(PIOSSTM32F30X)/Libraries
+APPLIBDIR = $(PIOSSTM32F4XX)/Libraries
 STMLIBDIR = $(APPLIBDIR)
-STMSPDDIR = $(STMLIBDIR)/STM32F30x_StdPeriph_Driver
+STMSPDDIR = $(STMLIBDIR)/STM32F4xx_StdPeriph_Driver
 STMSPDSRCDIR = $(STMSPDDIR)/src
 STMSPDINCDIR = $(STMSPDDIR)/inc
 DEBUG_CM3_DIR = $(PIOSCOMMONLIB)/Debug
 DEBUG_CM3_DIR_INC = $(DEBUG_CM3_DIR)/inc
 OPUAVOBJINC = $(OPUAVOBJ)/inc
+FLIGHTPLANLIB = $(OPMODULEDIR)/FlightPlan/lib
+FLIGHTPLANS = $(OPMODULEDIR)/FlightPlan/flightplans
 MAVLINKINC = $(FLIGHTLIB)/mavlink/v1.0/common
 
 # optional component libraries
 include $(PIOSCOMMONLIB)/FreeRTOS/library.mk
 #include $(PIOSCOMMONLIB)/dosfs/library.mk
 include $(FLIGHTLIB)/CMSIS3/DSP_Lib/library.mk
+
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
@@ -116,17 +120,18 @@ SRC += $(FLIGHTLIB)/sanitycheck.c
 SRC += $(MATHLIB)/coordinate_conversions.c
 SRC += $(MATHLIB)/sin_lookup.c
 SRC += $(MATHLIB)/misc_math.c
-SRC += $(MATHLIB)/pid.c
 SRC += $(MATHLIB)/atmospheric_math.c
+SRC += $(MATHLIB)/pid.c
 
-## PIOS Hardware (STM32F30x)
-include $(PIOS)/STM32F30x/library_fw.mk
+## PIOS Hardware (STM32F4xx)
+include $(PIOS)/STM32F4xx/library_fw.mk
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_delay.c
 SRC += $(PIOSCOMMON)/pios_mpu6000.c
-SRC += $(PIOSCOMMON)/pios_ms5611_spi.c
-SRC += $(PIOSCOMMON)/pios_hmc5983.c
+SRC += $(PIOSCOMMON)/pios_gcsrcvr.c
+SRC += $(PIOSCOMMON)/pios_hmc5883.c
+SRC += $(PIOSCOMMON)/pios_ms5611.c
 SRC += $(PIOSCOMMON)/pios_etasv3.c
 SRC += $(PIOSCOMMON)/pios_mpxv5004.c
 SRC += $(PIOSCOMMON)/pios_mpxv7002.c
@@ -136,20 +141,19 @@ SRC += $(PIOSCOMMON)/pios_rcvr.c
 SRC += $(PIOSCOMMON)/pios_sbus.c
 SRC += $(PIOSCOMMON)/pios_hsum.c
 SRC += $(PIOSCOMMON)/pios_sensors.c
-SRC += $(PIOSCOMMON)/pios_gcsrcvr.c
 SRC += $(PIOSCOMMON)/pios_flash.c
+SRC += $(PIOSCOMMON)/pios_flash_jedec.c
 SRC += $(PIOSCOMMON)/pios_flashfs_logfs.c
 SRC += $(PIOSCOMMON)/printf-stdarg.c
 SRC += $(PIOSCOMMON)/pios_usb_desc_hid_cdc.c
+SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
 SRC += $(PIOSCOMMON)/pios_usb_util.c
-SRC += $(PIOSCOMMON)/pios_dma.c
 SRC += $(PIOSCOMMON)/pios_adc.c
 SRC += $(PIOSCOMMON)/pios_heap.c
 SRC += $(PIOSCOMMON)/pios_semaphore.c
 SRC += $(PIOSCOMMON)/pios_mutex.c
 SRC += $(PIOSCOMMON)/pios_thread.c
 SRC += $(PIOSCOMMON)/pios_queue.c
-
 
 include ./UAVObjects.inc
 SRC += $(UAVOBJSRC)
@@ -171,7 +175,7 @@ EXTRAINCDIRS += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS += $(FLIGHTLIBINC)
 EXTRAINCDIRS += $(MATHLIBINC)
 EXTRAINCDIRS += $(RSCODEINC)
-EXTRAINCDIRS += $(PIOSSTM32F30X)
+EXTRAINCDIRS += $(PIOSSTM32F4XX)
 EXTRAINCDIRS += $(PIOSCOMMON)
 EXTRAINCDIRS += $(BOARD_INFO_DIR)
 EXTRAINCDIRS += $(STMSPDINCDIR)
@@ -197,17 +201,20 @@ EXTRA_LIBDIRS =
 EXTRA_LIBS =
 
 # Path to Linker-Scripts
-LINKERSCRIPTPATH = $(PIOSSTM32F30X)
+LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
 
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.
 # (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
 
 ifeq ($(DEBUG),YES)
-CFLAGS += -O0 -ffixed-r10
+CFLAGS += -O0
+CFLAGS += -DGENERAL_COV
+CFLAGS += -finstrument-functions -ffixed-r10
 else
 CFLAGS += -Os
 endif
+
 
 
 # common architecture-specific flags from the device-specific library makefile
@@ -224,8 +231,7 @@ CDEFS += -DUNALIGNED_SUPPORT_DISABLE
 
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
-CFLAGS += -DSTM32F30X
-CFLAGS += -DMEM_SIZE=$(FW_BANK_SIZE)
+CFLAGS += -DSTM32F4XX
 
 # Debugging format.
 DEBUGF = dwarf-2
@@ -244,8 +250,6 @@ ifeq ($(ENABLE_DEBUG_CONSOLE), YES)
 CDEFS += -DPIOS_INCLUDE_DEBUG_CONSOLE
 endif
 
-CDEFS += -DEE_BANK_BASE=$(EE_BANK_BASE)
-CDEFS += -DEE_BANK_SIZE=$(EE_BANK_SIZE)
 
 # Declare all non-optional modules as built-in to force inclusion, strip off any appended varieties of module
 get_mod_name = $(shell echo $(1) | sed "s/\/[^\/]*$///")
@@ -316,12 +320,12 @@ LDFLAGS += -lc -lgcc -lm
 LDFLAGS += -Wl,--warn-common
 LDFLAGS += -Wl,--fatal-warnings
 
-#Linker scripts
+#Linker scripts                                                                                                                                                                                                              
 LDFLAGS += $(addprefix -T,$(LINKER_SCRIPTS_APP))
 
 
 # Define programs and commands.
-REMOVE  = $(REMOVE_CMD) -f
+REMOVE  = rm -f
 
 # List of all source files.
 ALLSRC     =  $(ASRC) $(SRC) $(CPPSRC)

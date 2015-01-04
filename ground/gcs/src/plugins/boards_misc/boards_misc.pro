@@ -8,10 +8,12 @@ OTHER_FILES += Misc.json
 
 HEADERS += \
     miscplugin.h \
+    aq32.h \
     naze32pro.h
 
 SOURCES += \
     miscplugin.cpp \
+    aq32.cpp \
     naze32pro.cpp
 
 RESOURCES += \

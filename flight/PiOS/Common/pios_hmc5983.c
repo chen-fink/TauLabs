@@ -134,7 +134,7 @@ int32_t PIOS_HMC5983_Init(uint32_t spi_id, uint32_t slave_num, const struct pios
 
 	PIOS_SENSORS_Register(PIOS_SENSOR_MAG, dev->queue);
 
-	dev->task = PIOS_Thread_Create(PIOS_HMC5883_Task, "pios_hmc5983", HMC5983_TASK_STACK_BYTES, NULL, HMC5983_TASK_PRIORITY);
+	dev->task = PIOS_Thread_Create(PIOS_HMC5983_Task, "pios_hmc5983", HMC5983_TASK_STACK_BYTES, NULL, HMC5983_TASK_PRIORITY);
 
 	PIOS_Assert(dev->task != NULL);
 
@@ -499,7 +499,6 @@ bool PIOS_HMC5983_IRQHandler(void)
 	if (PIOS_HMC5983_Validate(dev) != 0)
 		return false;
 
-	portBASE_TYPE xHigherPriorityTaskWoken;
 	bool woken = false;
 	PIOS_Semaphore_Give_FromISR(dev->data_ready_sema, &woken);
 
