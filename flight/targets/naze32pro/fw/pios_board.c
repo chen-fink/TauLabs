@@ -84,13 +84,13 @@ static const struct pios_exti_cfg pios_exti_mpu6000_cfg __exti_config = {
 
 static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
 	.exti_cfg           = &pios_exti_mpu6000_cfg,
-	.default_samplerate = 666,
+	.default_samplerate = 500,
 	.interrupt_cfg      = PIOS_MPU60X0_INT_CLR_ANYRD,
 	.interrupt_en       = PIOS_MPU60X0_INTEN_DATA_RDY,
 	.User_ctl           = PIOS_MPU60X0_USERCTL_DIS_I2C,
 	.Pwr_mgmt_clk       = PIOS_MPU60X0_PWRMGMT_PLL_Z_CLK,
 	.default_filter     = PIOS_MPU60X0_LOWPASS_256_HZ,
-	.orientation        = PIOS_MPU60X0_TOP_180DEG
+	.orientation        = PIOS_MPU60X0_TOP_270DEG
 };
 #endif /* PIOS_INCLUDE_MPU6000 */
 
@@ -134,11 +134,12 @@ static const struct pios_exti_cfg pios_exti_hmc5983_cfg __exti_config = {
 
 static const struct pios_hmc5983_cfg pios_hmc5983_cfg = {
 	.exti_cfg    = &pios_exti_hmc5983_cfg,
+	.Averaging   = PIOS_HMC5983_AVERAGING_8,
 	.M_ODR       = PIOS_HMC5983_ODR_75,
 	.Meas_Conf   = PIOS_HMC5983_MEASCONF_NORMAL,
 	.Gain        = PIOS_HMC5983_GAIN_1_9,
 	.Mode        = PIOS_HMC5983_MODE_CONTINUOUS,
-	.orientation = PIOS_HMC5983_TOP_90DEG,
+	.orientation = PIOS_HMC5983_TOP_180DEG,
 };
 
 #endif /* PIOS_INCLUDE_HMC5983 */
@@ -151,10 +152,10 @@ static const struct pios_hmc5983_cfg pios_hmc5983_cfg = {
 #if defined(PIOS_INCLUDE_MS5611_SPI)
 #include "pios_ms5611_priv.h"
 static const struct pios_ms5611_cfg pios_ms5611_cfg = {
-	.oversampling             = MS5611_OSR_1024,
+	.oversampling             = MS5611_OSR_4096,
 	.temperature_interleaving = 1,
 };
-#endif /* PIOS_INCLUDE_MS5611 */
+#endif /* PIOS_INCLUDE_MS5611_SPI */
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -309,12 +310,11 @@ static void PIOS_Board_configure_hsum(const struct pios_usart_cfg *pios_usart_hs
 
 /**
  * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse  - MPU6000 - no irq
- * 2 pulses - MPU6000 - failed configuration or task starting
- * 3 pulses - internal I2C bus locked
- * 4 pulses - external I2C bus locked
- * 5 pulses - flash
- * 6 pulses - CAN
+ * 1 pulse  - MPU6000
+ * 2 pulses - HMC5983
+ * 3 pulses - MS5611
+ * 4 pulses - Flash
+ * 5 pulses - ???
  */
 void panic(int32_t code) {
 	while(1){
@@ -363,7 +363,7 @@ void PIOS_Board_Init(void) {
     ///////////////////////////////////////////////////////////////////////////
 
     #if defined(PIOS_INCLUDE_SPI)
-	if (PIOS_SPI_Init(&pios_spi2_id, &pios_spi2_cfg)) {
+	if (PIOS_SPI_Init(&pios_spi_internal_id, &pios_spi_internal_cfg)) {
 		PIOS_Assert(0);
 	}
     #endif
@@ -373,7 +373,7 @@ void PIOS_Board_Init(void) {
     #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		panic(5);
+		panic(4);
 
 	/* Register the partition table */
 	const struct pios_flash_partition * flash_partition_table;
@@ -383,9 +383,9 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(5);
+		panic(4);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		panic(5);
+		panic(4);
 
     #endif	/* PIOS_INCLUDE_FLASH */
 
@@ -433,7 +433,6 @@ void PIOS_Board_Init(void) {
 	PIOS_TIM_InitClock(&tim_3_cfg);
 	PIOS_TIM_InitClock(&tim_15_cfg);
 	PIOS_TIM_InitClock(&tim_16_cfg);
-	PIOS_TIM_InitClock(&tim_17_cfg);
 
 	/* IAP System Setup */
 	PIOS_IAP_Init();
@@ -859,38 +858,33 @@ void PIOS_Board_Init(void) {
 	uint8_t number_of_pwm_outputs;
 	uint8_t number_of_adc_ports;
 	bool use_pwm_in;
+
 	HwNaze32ProOutPortGet(&hw_outport);
 
 	switch (hw_outport)
 	{
-	case HWNAZE32PRO_OUTPORT_PWM10:
-		number_of_pwm_outputs = 10;
-		number_of_adc_ports = 0;
-		use_pwm_in = false;
+	case HWNAZE32PRO_OUTPORT_PWM8:
+		number_of_pwm_outputs = 8;
+		use_pwm_in            = false;
+		number_of_adc_ports   = 0;
 		break;
 
 	case HWNAZE32PRO_OUTPORT_PWM82ADC:
 		number_of_pwm_outputs = 8;
-		number_of_adc_ports = 2;
-		use_pwm_in = false;
+		use_pwm_in            = false;
+		number_of_adc_ports   = 2;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM73ADC:
-		number_of_pwm_outputs = 7;
-		number_of_adc_ports = 3;
-		use_pwm_in = false;
+	case HWNAZE32PRO_OUTPORT_PWM8PWM_IN:
+		number_of_pwm_outputs = 8;
+		use_pwm_in            = true;
+		number_of_adc_ports   = 0;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM9PWM_IN:
-		number_of_pwm_outputs = 9;
-		use_pwm_in = true;
-		number_of_adc_ports = 0;
-		break;
-
-	case HWNAZE32PRO_OUTPORT_PWM7PWM_IN2ADC:
-		number_of_pwm_outputs = 7;
-		use_pwm_in = true;
-		number_of_adc_ports = 2;
+	case HWNAZE32PRO_OUTPORT_PWM8PWM_IN2ADC:
+		number_of_pwm_outputs = 8;
+		use_pwm_in            = true;
+		number_of_adc_ports   = 2;
 		break;
 
 	default:
@@ -909,6 +903,8 @@ void PIOS_Board_Init(void) {
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
     #endif
 
+    ///////////////////////////////////////////////////////////////////////////
+
     #if defined(PIOS_INCLUDE_ADC)
 	if(number_of_adc_ports > 0) {
 		internal_adc_cfg.number_of_used_pins = number_of_adc_ports;
@@ -918,10 +914,13 @@ void PIOS_Board_Init(void) {
 		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
 	}
     #endif /* PIOS_INCLUDE_ADC */
+
+    ///////////////////////////////////////////////////////////////////////////
+
     #if defined(PIOS_INCLUDE_PWM)
 	if (use_pwm_in > 0) {
 		if (number_of_adc_ports > 0)
-			pios_pwm_cfg.channels = &pios_tim_rcvrport_pwm[1];
+			pios_pwm_cfg.channels = &pios_tim_rangefinder_pwm[1];
 		uintptr_t pios_pwm_id;
 		PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
 
@@ -942,10 +941,10 @@ void PIOS_Board_Init(void) {
     ///////////////////////////////////////////////////////////////////////////
 
     #if defined(PIOS_INCLUDE_MPU6000)
-	if (PIOS_MPU6000_Init(pios_spi2_id, 0, &pios_mpu6000_cfg) != 0)
-		panic(2);
+	if (PIOS_MPU6000_Init(pios_spi_internal_id, 0, &pios_mpu6000_cfg) != 0)
+		panic(1);
 	if (PIOS_MPU6000_Test() != 0)
-		panic(2);
+		panic(1);
 
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
@@ -1023,17 +1022,28 @@ void PIOS_Board_Init(void) {
 
     ///////////////////////////////////////////////////////////////////////////
 
+    PIOS_WDG_Clear();
+
+    ///////////////////////////////////////////////////////////////////////////
+
     #if defined(PIOS_INCLUDE_HMC5983)
-    if (PIOS_HMC5983_Init(pios_spi2_id, 1, &pios_hmc5983_cfg) != 0)
-		panic(3);
+    if (PIOS_HMC5983_Init(pios_spi_internal_id, 1, &pios_hmc5983_cfg) != 0)
+		panic(2);
+
+	PIOS_WDG_Clear();
+
 	if (PIOS_HMC5983_Test() != 0)
-		panic(3);
+		panic(2);
     #endif /* PIOS_INCLUDE_HMC5983 */
 
     ///////////////////////////////////////////////////////////////////////////
 
+    PIOS_WDG_Clear();
+
+    ///////////////////////////////////////////////////////////////////////////
+
     #if defined(PIOS_INCLUDE_MS5611_SPI)
-	if (PIOS_MS5611_SPI_Init(pios_spi2_id, 2, &pios_ms5611_cfg) != 0) {
+	if (PIOS_MS5611_SPI_Init(pios_spi_internal_id, 2, &pios_ms5611_cfg) != 0) {
 		PIOS_Assert(0);
 	}
     #endif	/* PIOS_INCLUDE_MS5611_SPI */
