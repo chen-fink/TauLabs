@@ -1,17 +1,17 @@
 /**
  ******************************************************************************
- * @file       miscplugin.cpp
+ * @file       taulabsplugin.cpp
 <<<<<<< HEAD
- * @author     John Ihlein, Copyright (C) 2014
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
 =======
- * @author     John Ihlein, Copyright (C) 2014.
->>>>>>> GCS: Add board plugin for miscellaneous flight control boards
+ * @author     Tau Labs, http://github.com/TauLabs, Copyright (C) 2013.
+>>>>>>> GCS: Add board plugin for taulabs
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup Boards_MiscPlugin Misc boards support Plugin
+ * @addtogroup Boards_TauLabsPlugin Tau Labs boards support Plugin
  * @{
- * @brief Plugin to support miscellaneous flight control boards
+ * @brief Plugin to support boards by the Tau Labs project
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,6 @@
  */
 
 #include "miscplugin.h"
-#include "aq32.h"
 #include "naze32pro.h"
 #include <QtPlugin>
 
@@ -58,9 +57,6 @@ void MiscPlugin::extensionsInitialized()
      * Create the board objects here.
      *
      */
-    AQ32* aq32 = new AQ32();
-    addAutoReleasedObject(aq32);
-
     Naze32Pro* naze32pro = new Naze32Pro();
     addAutoReleasedObject(naze32pro);
 }

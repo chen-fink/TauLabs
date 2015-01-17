@@ -47,12 +47,14 @@
 			</options>
 		</field>
 
-		<field name="OutPort" units="function" type="enum" elements="1" defaultvalue="PWM10">
+		<field name="OutPort" units="function" type="enum" elements="1" defaultvalue="PWM8">
 			<options>
 				<option>PWM8</option>
-				<option>PWM8+2ADC</option>
+				<option>PWM8+ADC1</option>
+				<option>PWM8+ADC2</option>
 				<option>PWM8+PWM_IN</option>
-				<option>PWM8+PWM_IN+2ADC</option>
+				<option>PWM8+PWM_IN+ADC1</option>
+				<option>PWM8+PWM_IN+ADC2</option>
 			</options>
 		</field>
 		
@@ -64,8 +66,11 @@
 		<field name="GyroRange" units="deg/s" type="enum" elements="1" options="250,500,1000,2000" defaultvalue="500"/>
 		<field name="AccelRange" units="*gravity m/s^2" type="enum" elements="1" options="2G,4G,8G,16G" defaultvalue="8G"/>
 		<field name="MPU6000DLPF" units="" type="enum" elements="1" options="256,188,98,42,20,10,5" defaultvalue="256"/>
-		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,333,444,500,666,1000,2000,4000,8000" defaultvalue="444"/>
+		<field name="MPU6000Rate" units="" type="enum" elements="1" options="200,333,444,500,666,1000,2000,4000,8000" defaultvalue="666"/>
 
+		<field name="Magnetometer" units="function" type="enum" elements="1" options="Disabled,Internal,External" defaultvalue="Internal"/>
+		<field name="ExtMagOrientation" units="function" type="enum" elements="1" options="Top0degCW,Top90degCW,Top180degCW,Top270degCW,Bottom0degCW,Bottom90degCW,Bottom180degCW,Bottom270degCW" defaultvalue="Top0degCW" />
+	
 		<access gcs="readwrite" flight="readwrite"/>
 		<telemetrygcs acked="true" updatemode="onchange" period="0"/>
 		<telemetryflight acked="true" updatemode="onchange" period="0"/>

@@ -5,7 +5,7 @@
 # @{
 # @addtogroup 
 # @{
-# @brief Makefile to build UAVObject code for Naze32Pro board.
+# @brief Makefile to build UAVObject code for Sparky board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify

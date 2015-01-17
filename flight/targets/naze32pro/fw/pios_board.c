@@ -84,7 +84,7 @@ static const struct pios_exti_cfg pios_exti_mpu6000_cfg __exti_config = {
 
 static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
 	.exti_cfg           = &pios_exti_mpu6000_cfg,
-	.default_samplerate = 500,
+	.default_samplerate = 666,
 	.interrupt_cfg      = PIOS_MPU60X0_INT_CLR_ANYRD,
 	.interrupt_en       = PIOS_MPU60X0_INTEN_DATA_RDY,
 	.User_ctl           = PIOS_MPU60X0_USERCTL_DIS_I2C,
@@ -97,7 +97,7 @@ static const struct pios_mpu60x0_cfg pios_mpu6000_cfg = {
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Configuration of the HMC5983 chip
+ * Configuration of the internal HMC5983 chip
  */
 #if defined(PIOS_INCLUDE_HMC5983)
 #include "pios_hmc5983.h"
@@ -143,6 +143,22 @@ static const struct pios_hmc5983_cfg pios_hmc5983_cfg = {
 };
 
 #endif /* PIOS_INCLUDE_HMC5983 */
+
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Configuration for the external HMC5883 chip
+ */
+#if defined(PIOS_INCLUDE_HMC5883)
+#include "pios_hmc5883_priv.h"
+static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
+	.M_ODR               = PIOS_HMC5883_ODR_75,
+	.Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
+	.Gain                = PIOS_HMC5883_GAIN_1_9,
+	.Mode                = PIOS_HMC5883_MODE_SINGLE,
+	.Default_Orientation = PIOS_HMC5883_TOP_0DEG,
+};
+#endif /* PIOS_INCLUDE_HMC5883 */
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -310,15 +326,21 @@ static void PIOS_Board_configure_hsum(const struct pios_usart_cfg *pios_usart_hs
 
 /**
  * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse  - MPU6000
- * 2 pulses - HMC5983
- * 3 pulses - MS5611
- * 4 pulses - Flash
- * 5 pulses - ???
+ * 1 pulse  - MPU6000 - no irq
+ * 2 pulses - MPU6000 - test failed
+ * 3 pulses - HMC5983 - no irq
+ * 4 pulses - HMC5983 - test failed
+ * 5 pulses - Flash
+ * 6 pulses - External I2C bus locked
+ * 7 pulses - HMC5883 - no irq
+ * 8 pulses - HMC5883 - test failed
  */
-void panic(int32_t code) {
-	while(1){
-		for (int32_t i = 0; i < code; i++) {
+void panic(int32_t code)
+{
+	while(1)
+	{
+		for (int32_t i = 0; i < code; i++)
+		{
 			PIOS_WDG_Clear();
 			PIOS_LED_Toggle(PIOS_LED_ALARM);
 			PIOS_DELAY_WaitmS(200);
@@ -326,6 +348,7 @@ void panic(int32_t code) {
 			PIOS_LED_Toggle(PIOS_LED_ALARM);
 			PIOS_DELAY_WaitmS(200);
 		}
+
 		PIOS_WDG_Clear();
 		PIOS_DELAY_WaitmS(200);
 		PIOS_WDG_Clear();
@@ -364,8 +387,18 @@ void PIOS_Board_Init(void) {
 
     #if defined(PIOS_INCLUDE_SPI)
 	if (PIOS_SPI_Init(&pios_spi_internal_id, &pios_spi_internal_cfg)) {
-		PIOS_Assert(0);
+		PIOS_DEBUG_Assert(0);
 	}
+    #endif
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    #if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
+	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
+		panic(6);
     #endif
 
     ///////////////////////////////////////////////////////////////////////////
@@ -373,7 +406,7 @@ void PIOS_Board_Init(void) {
     #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
-		panic(4);
+		panic(5);
 
 	/* Register the partition table */
 	const struct pios_flash_partition * flash_partition_table;
@@ -383,15 +416,15 @@ void PIOS_Board_Init(void) {
 
 	/* Mount all filesystems */
 	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
-		panic(4);
+		panic(5);
 	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
-		panic(4);
+		panic(5);
 
     #endif	/* PIOS_INCLUDE_FLASH */
 
-	///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
 
-	/* Initialize the task monitor library */
+    /* Initialize the task monitor library */
 	TaskMonitorInitialize();
 
 	/* Initialize UAVObject libraries */
@@ -407,7 +440,7 @@ void PIOS_Board_Init(void) {
     ///////////////////////////////////////////////////////////////////////////
 
     #if defined(PIOS_INCLUDE_RTC)
-	/* Initialize the real-time clock and its associated tick */
+ 	/* Initialize the real-time clock and its associated tick */
 	PIOS_RTC_Init(&pios_rtc_main_cfg);
     #endif
 
@@ -422,17 +455,19 @@ void PIOS_Board_Init(void) {
 	}
     #endif
 
-	///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
 
-	/* Set up pulse timers */
+    /* Set up pulse timers */
+
 	//inputs
+    PIOS_TIM_InitClock(&tim_1_cfg);
+    PIOS_TIM_InitClock(&tim_16_cfg);
 
 	//outputs
-	PIOS_TIM_InitClock(&tim_1_cfg);
 	PIOS_TIM_InitClock(&tim_2_cfg);
-	PIOS_TIM_InitClock(&tim_3_cfg);
 	PIOS_TIM_InitClock(&tim_15_cfg);
-	PIOS_TIM_InitClock(&tim_16_cfg);
+	PIOS_TIM_InitClock(&tim_3_cfg);
+	PIOS_TIM_InitClock(&tim_4_cfg);
 
 	/* IAP System Setup */
 	PIOS_IAP_Init();
@@ -475,9 +510,12 @@ void PIOS_Board_Init(void) {
 	uintptr_t pios_usb_id;
 	PIOS_USB_Init(&pios_usb_id, PIOS_BOARD_HW_DEFS_GetUsbCfg(bdinfo->board_rev));
 
+    ///////////////////////////////////////////////////////////////////////////
+
     #if defined(PIOS_INCLUDE_USB_CDC)
 
 	uint8_t hw_usb_vcpport;
+
 	/* Configure the USB VCP port */
 	HwNaze32ProUSB_VCPPortGet(&hw_usb_vcpport);
 
@@ -487,6 +525,7 @@ void PIOS_Board_Init(void) {
 	}
 
 	switch (hw_usb_vcpport)
+
 	{
 	case HWNAZE32PRO_USB_VCPPORT_DISABLED:
 		break;
@@ -553,9 +592,13 @@ void PIOS_Board_Init(void) {
 	}
     #endif	/* PIOS_INCLUDE_USB_CDC */
 
+    ///////////////////////////////////////////////////////////////////////////
+
     #if defined(PIOS_INCLUDE_USB_HID)
+
 	/* Configure the usb HID port */
 	uint8_t hw_usb_hidport;
+
 	HwNaze32ProUSB_HIDPortGet(&hw_usb_hidport);
 
 	if (!usb_hid_present) {
@@ -592,16 +635,16 @@ void PIOS_Board_Init(void) {
     #endif	/* PIOS_INCLUDE_USB_HID */
     #endif	/* PIOS_INCLUDE_USB */
 
-    ///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 
-    /* Configure the IO ports */
-	uint8_t hw_DSMxBind;
-	HwNaze32ProDSMxBindGet(&hw_DSMxBind);
+	/* Configure the IO ports */
 
 	/* UART1 Port */
-	uint8_t hw_flexi;
-	HwNaze32ProUart1Get(&hw_flexi);
-	switch (hw_flexi)
+	uint8_t hw_uart1;
+
+	HwNaze32ProUart1Get(&hw_uart1);
+
+	switch (hw_uart1)
 	{
 	case HWNAZE32PRO_UART1_DISABLED:
 		break;
@@ -620,7 +663,7 @@ void PIOS_Board_Init(void) {
 
 	case HWNAZE32PRO_UART1_DEBUGCONSOLE:
         #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
-		PIOS_Board_configure_com(&pios_flexi_usart_cfg, 0, PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+		PIOS_Board_configure_com(&pios_uart1_cfg, 0, PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
         #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 		break;
 
@@ -670,12 +713,14 @@ void PIOS_Board_Init(void) {
 		break;
 	}
 
-    ///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 
-    /* UART2 Port */
-	uint8_t hw_main;
-	HwNaze32ProUart2Get(&hw_main);
-	switch (hw_main)
+	/* UART2 Port */
+	uint8_t hw_uart2;
+
+	HwNaze32ProUart2Get(&hw_uart2);
+
+	switch (hw_uart2)
 	{
 	case HWNAZE32PRO_UART2_DISABLED:
 		break;
@@ -694,7 +739,7 @@ void PIOS_Board_Init(void) {
 
 	case HWNAZE32PRO_UART2_DEBUGCONSOLE:
         #if defined(PIOS_INCLUDE_DEBUG_CONSOLE) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
-		PIOS_Board_configure_com(&pios_main_usart_cfg, 0, PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+		PIOS_Board_configure_com(&pios_uart2_cfg, 0, PIOS_COM_DEBUGCONSOLE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
         #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 		break;
 
@@ -744,10 +789,11 @@ void PIOS_Board_Init(void) {
 		break;
 	}
 
-    ///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 
-    /* Configure the rcvr port */
+	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
+
 	HwNaze32ProRcvrPortGet(&hw_rcvrport);
 
 	switch (hw_rcvrport)
@@ -776,21 +822,30 @@ void PIOS_Board_Init(void) {
         #if defined(PIOS_INCLUDE_DSM)
 		{
 			enum pios_dsm_proto proto;
-			switch (hw_rcvrport) {
+
+			switch (hw_rcvrport)
+			{
 			case HWNAZE32PRO_RCVRPORT_DSM2:
 				proto = PIOS_DSM_PROTO_DSM2;
 				break;
+
 			case HWNAZE32PRO_RCVRPORT_DSMX10BIT:
 				proto = PIOS_DSM_PROTO_DSMX10BIT;
 				break;
+
 			case HWNAZE32PRO_RCVRPORT_DSMX11BIT:
 				proto = PIOS_DSM_PROTO_DSMX11BIT;
 				break;
+
 			default:
 				PIOS_Assert(0);
 				break;
 			}
-			PIOS_Board_configure_dsm(&pios_rcvr_dsm_hsum_cfg, &pios_rcvr_dsm_aux_cfg, &pios_usart_com_driver,
+			uint8_t hw_DSMxBind;
+
+			HwNaze32ProDSMxBindGet(&hw_DSMxBind);
+
+			PIOS_Board_configure_dsm(&pios_rcvr_dsm_hsum_cfg, &pios_rcvr_dsm_bind_cfg, &pios_usart_com_driver,
 				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
 		}
         #endif	/* PIOS_INCLUDE_DSM */
@@ -801,13 +856,17 @@ void PIOS_Board_Init(void) {
         #if defined(PIOS_INCLUDE_HSUM)
 		{
 			enum pios_hsum_proto proto;
-			switch (hw_rcvrport) {
+
+			switch (hw_rcvrport)
+			{
 			case HWNAZE32PRO_RCVRPORT_HOTTSUMD:
 				proto = PIOS_HSUM_PROTO_SUMD;
 				break;
+
 			case HWNAZE32PRO_RCVRPORT_HOTTSUMH:
 				proto = PIOS_HSUM_PROTO_SUMH;
 				break;
+
 			default:
 				PIOS_Assert(0);
 				break;
@@ -836,7 +895,8 @@ void PIOS_Board_Init(void) {
 			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS] = pios_sbus_rcvr_id;
 		}
         #endif	/* PIOS_INCLUDE_SBUS */
-		break;		break;
+		break;
+		break;
 	}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -854,6 +914,8 @@ void PIOS_Board_Init(void) {
 
     ///////////////////////////////////////////////////////////////////////////
 
+    #if defined PIOS_INCLUDE_ADC && defined PIOS_INCLUDE_PWM && defined PIOS_INCLUDE_SERVO
+
     uint8_t hw_outport;
 	uint8_t number_of_pwm_outputs;
 	uint8_t number_of_adc_ports;
@@ -869,7 +931,13 @@ void PIOS_Board_Init(void) {
 		number_of_adc_ports   = 0;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM82ADC:
+	case HWNAZE32PRO_OUTPORT_PWM8ADC1:
+		number_of_pwm_outputs = 8;
+		use_pwm_in            = false;
+		number_of_adc_ports   = 1;
+		break;
+
+	case HWNAZE32PRO_OUTPORT_PWM8ADC2:
 		number_of_pwm_outputs = 8;
 		use_pwm_in            = false;
 		number_of_adc_ports   = 2;
@@ -881,18 +949,26 @@ void PIOS_Board_Init(void) {
 		number_of_adc_ports   = 0;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM8PWM_IN2ADC:
+	case HWNAZE32PRO_OUTPORT_PWM8PWM_INADC1:
+		number_of_pwm_outputs = 8;
+		use_pwm_in            = true;
+		number_of_adc_ports   = 1;
+		break;
+
+	case HWNAZE32PRO_OUTPORT_PWM8PWM_INADC2:
 		number_of_pwm_outputs = 8;
 		use_pwm_in            = true;
 		number_of_adc_ports   = 2;
 		break;
 
 	default:
+
 		PIOS_Assert(0);
 		break;
 	}
+    #endif
 
-	///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
 
     #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
     #ifdef PIOS_INCLUDE_SERVO
@@ -903,7 +979,19 @@ void PIOS_Board_Init(void) {
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
     #endif
 
-    ///////////////////////////////////////////////////////////////////////////
+    #if defined(PIOS_INCLUDE_PWM)
+	if (use_pwm_in == true) {
+		pios_pwm_cfg.channels = &pios_tim_rangefinder_pwm[0];
+		uintptr_t pios_pwm_id;
+		PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
+
+		uintptr_t pios_pwm_rcvr_id;
+		if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
+			PIOS_Assert(0);
+		}
+		pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
+	}
+    #endif	/* PIOS_INCLUDE_PWM */
 
     #if defined(PIOS_INCLUDE_ADC)
 	if(number_of_adc_ports > 0) {
@@ -917,34 +1005,19 @@ void PIOS_Board_Init(void) {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    #if defined(PIOS_INCLUDE_PWM)
-	if (use_pwm_in > 0) {
-		if (number_of_adc_ports > 0)
-			pios_pwm_cfg.channels = &pios_tim_rangefinder_pwm[1];
-		uintptr_t pios_pwm_id;
-		PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
-
-		uintptr_t pios_pwm_rcvr_id;
-		if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
-			PIOS_Assert(0);
-		}
-		pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
-	}
-    #endif	/* PIOS_INCLUDE_PWM */
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    PIOS_WDG_Clear();
+	PIOS_WDG_Clear();
 	PIOS_DELAY_WaitmS(200);
 	PIOS_WDG_Clear();
 
-    ///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
+
+    //PIOS_SENSORS_Init();
 
     #if defined(PIOS_INCLUDE_MPU6000)
 	if (PIOS_MPU6000_Init(pios_spi_internal_id, 0, &pios_mpu6000_cfg) != 0)
 		panic(1);
 	if (PIOS_MPU6000_Test() != 0)
-		panic(1);
+		panic(2);
 
 	// To be safe map from UAVO enum to driver enum
 	uint8_t hw_gyro_range;
@@ -994,6 +1067,7 @@ void PIOS_Board_Init(void) {
 	// the filter has to be set before rate else divisor calculation will fail
 	uint8_t hw_mpu6000_dlpf;
 	HwNaze32ProMPU6000DLPFGet(&hw_mpu6000_dlpf);
+
 	enum pios_mpu60x0_filter mpu6000_dlpf = \
 	    (hw_mpu6000_dlpf == HWNAZE32PRO_MPU6000DLPF_256) ? PIOS_MPU60X0_LOWPASS_256_HZ : \
 	    (hw_mpu6000_dlpf == HWNAZE32PRO_MPU6000DLPF_188) ? PIOS_MPU60X0_LOWPASS_188_HZ : \
@@ -1007,9 +1081,11 @@ void PIOS_Board_Init(void) {
 
 	uint8_t hw_mpu6000_samplerate;
 	HwNaze32ProMPU6000RateGet(&hw_mpu6000_samplerate);
+
 	uint16_t mpu6000_samplerate = \
 	    (hw_mpu6000_samplerate == HWNAZE32PRO_MPU6000RATE_200)  ? 200  : \
 	    (hw_mpu6000_samplerate == HWNAZE32PRO_MPU6000RATE_333)  ? 333  : \
+	    (hw_mpu6000_samplerate == HWNAZE32PRO_MPU6000RATE_333)  ? 444  : \
 	    (hw_mpu6000_samplerate == HWNAZE32PRO_MPU6000RATE_500)  ? 500  : \
 	    (hw_mpu6000_samplerate == HWNAZE32PRO_MPU6000RATE_666)  ? 666  : \
 	    (hw_mpu6000_samplerate == HWNAZE32PRO_MPU6000RATE_1000) ? 1000 : \
@@ -1024,23 +1100,52 @@ void PIOS_Board_Init(void) {
 
     PIOS_WDG_Clear();
 
-    ///////////////////////////////////////////////////////////////////////////
+    uint8_t Magnetometer;
+	HwNaze32ProMagnetometerGet(&Magnetometer);
 
-    #if defined(PIOS_INCLUDE_HMC5983)
-    if (PIOS_HMC5983_Init(pios_spi_internal_id, 1, &pios_hmc5983_cfg) != 0)
-		panic(2);
+	if (Magnetometer == HWNAZE32PRO_MAGNETOMETER_INTERNAL)
+	{
+		#if defined(PIOS_INCLUDE_HMC5983)
+        if (PIOS_HMC5983_Init(pios_spi_internal_id, 1, &pios_hmc5983_cfg) != 0)
+		    panic(3);
 
-	PIOS_WDG_Clear();
+	    PIOS_WDG_Clear();
 
-	if (PIOS_HMC5983_Test() != 0)
-		panic(2);
-    #endif /* PIOS_INCLUDE_HMC5983 */
+	    if (PIOS_HMC5983_Test() != 0)
+		    panic(4);
+        #endif /* PIOS_INCLUDE_HMC5983 */
+	}
+
+	if (Magnetometer == HWNAZE32PRO_MAGNETOMETER_EXTERNAL)
+	{
+		#if defined(PIOS_INCLUDE_HMC5883)
+		if (PIOS_HMC5883_Init(pios_i2c_usart1_adapter_id, &pios_hmc5883_external_cfg) != 0)
+			panic(7);
+
+		if (PIOS_HMC5883_Test() != 0)
+			panic(8);
+
+		// setup sensor orientation
+		uint8_t ExtMagOrientation;
+		HwNaze32ProExtMagOrientationGet(&ExtMagOrientation);
+
+		enum pios_hmc5883_orientation hmc5883_orientation = \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+			pios_hmc5883_external_cfg.Default_Orientation;
+		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+		#endif  /* PIOS_INCLUDE_HMC5883 */
+	}
 
     ///////////////////////////////////////////////////////////////////////////
 
     PIOS_WDG_Clear();
-
-    ///////////////////////////////////////////////////////////////////////////
 
     #if defined(PIOS_INCLUDE_MS5611_SPI)
 	if (PIOS_MS5611_SPI_Init(pios_spi_internal_id, 2, &pios_ms5611_cfg) != 0) {
@@ -1050,17 +1155,18 @@ void PIOS_Board_Init(void) {
 
     ///////////////////////////////////////////////////////////////////////////
 
+    PIOS_WDG_Clear();
+
     #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();
     #endif
 
-    ///////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 
 	/* Make sure we have at least one telemetry link configured or else fail initialization */
 	PIOS_Assert(pios_com_telem_rf_id || pios_com_telem_usb_id);
 
-    ///////////////////////////////////////////////////////////////////////////
-
+	///////////////////////////////////////////////////////////////////////////
 }
 
 /**

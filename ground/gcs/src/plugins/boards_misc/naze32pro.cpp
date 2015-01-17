@@ -1,13 +1,13 @@
 /**
  ******************************************************************************
- * @file       naze32pro.cpp
- * @author     John Ihlein, Copyright (C) 2014
+ * @file       sparky.cpp
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup Boards_MiscPlugin Misc boards support Plugin
+ * @addtogroup Boards_TauLabsPlugin Tau Labs boards support Plugin
  * @{
- * @brief Plugin to support miscellaneous flight control boards
+ * @brief Plugin to support boards by the Tau Labs project
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -49,13 +49,11 @@ Naze32Pro::Naze32Pro(void)
     boardType = 0x93;
 
     // Define the bank of channels that are connected to a given timer
-    channelBanks.resize(6);
+    channelBanks.resize(4);
     channelBanks[0] = QVector<int> () << 1 << 2;
-    channelBanks[1] = QVector<int> () << 3;
-    channelBanks[2] = QVector<int> () << 4 << 7 << 9;
-    channelBanks[3] = QVector<int> () << 5;
-    channelBanks[4] = QVector<int> () << 6 << 10;
-    channelBanks[5] = QVector<int> () << 8;
+    channelBanks[1] = QVector<int> () << 3 << 4;
+    channelBanks[2] = QVector<int> () << 5 << 6;
+    channelBanks[3] = QVector<int> () << 7 << 8;
 }
 
 Naze32Pro::~Naze32Pro()
@@ -71,7 +69,7 @@ QString Naze32Pro::shortName()
 
 QString Naze32Pro::boardDescription()
 {
-    return QString("Naze32Pro Flight Control by AbuseMart");
+    return QString("The Naze32Pro board");
 }
 
 //! Return which capabilities this board has
@@ -106,7 +104,7 @@ QStringList Naze32Pro::getSupportedProtocols()
 
 QPixmap Naze32Pro::getBoardPicture()
 {
-    return QPixmap(":/misc/images/sparky.png");
+    return QPixmap(":/misc/images/naze32pro.png");
 }
 
 QString Naze32Pro::getHwUAVO()

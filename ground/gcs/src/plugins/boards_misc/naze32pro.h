@@ -1,13 +1,13 @@
 /**
  ******************************************************************************
- * @file       naze32pro.h
- * @author     John Ihlein, Copyright (C) 2014
+ * @file       sparky.h
+ * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup Boards_MiscPlugin Misc boards support Plugin
+ * @addtogroup Boards_TauLabsPlugin Tau Labs boards support Plugin
  * @{
- * @brief Plugin to support miscellaneous flight control boards
+ * @brief Plugin to support boards by the Tau Labs project
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -60,6 +60,12 @@ public:
      * @return the currently selected input type
      */
     virtual enum InputType getInputOnPort(int port_num = 0);
+
+    /**
+     * @brief getConnectionDiagram get the connection diagram for this board
+     * @return a string with the name of the resource for this board diagram
+     */
+    virtual QString getConnectionDiagram() { return ":/taulabs/images/sparky-connection-diagram.svg"; }
 
     virtual int queryMaxGyroRate();
 

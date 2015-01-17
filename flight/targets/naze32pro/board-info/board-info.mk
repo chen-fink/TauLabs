@@ -1,12 +1,12 @@
 BOARD_TYPE          := 0x93
-BOARD_REVISION      := 0x01
+BOARD_REVISION      := 0x02
 # Previous version was 0x081, 0x082 introduces partition extensions and forced boot from bkp registers
 BOOTLOADER_VERSION  := 0x82
 HW_TYPE             := 0x00		# seems to be unused
 
 MCU                 := cortex-m4
 CHIP                := STM32F303VCT
-BOARD               := STM32F30x_Naze32Pro
+BOARD               := STM32F30x_SPARKY
 MODEL               := HD
 MODEL_SUFFIX        := 
 

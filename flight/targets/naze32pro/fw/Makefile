@@ -5,7 +5,7 @@
 # @{
 # @addtogroup
 # @{
-# @brief Makefile to build firmware for Naze32Pro.
+# @brief Makefile to build firmware for Sparky.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
@@ -125,11 +125,8 @@ include $(PIOS)/STM32F30x/library_fw.mk
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_delay.c
 SRC += $(PIOSCOMMON)/pios_mpu6000.c
-SRC += $(PIOSCOMMON)/pios_ms5611_spi.c
 SRC += $(PIOSCOMMON)/pios_hmc5983.c
-SRC += $(PIOSCOMMON)/pios_etasv3.c
-SRC += $(PIOSCOMMON)/pios_mpxv5004.c
-SRC += $(PIOSCOMMON)/pios_mpxv7002.c
+SRC += $(PIOSCOMMON)/pios_ms5611_spi.c
 SRC += $(PIOSCOMMON)/pios_crc.c
 SRC += $(PIOSCOMMON)/pios_com.c
 SRC += $(PIOSCOMMON)/pios_rcvr.c
