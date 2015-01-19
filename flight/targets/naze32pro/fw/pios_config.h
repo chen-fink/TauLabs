@@ -35,17 +35,16 @@
 #define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
-//#define PIOS_INCLUDE_ADC
+#define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_DMA_CB_SUBSCRIBING_FUNCTION
-
 #define PIOS_INCLUDE_DELAY
-//#define PIOS_INCLUDE_I2C
+#define PIOS_INCLUDE_I2C
 #define WDG_STATS_DIAGNOSTICS
 #define PIOS_INCLUDE_IRQ
 #define PIOS_INCLUDE_LED
 #define PIOS_INCLUDE_IAP
 #define PIOS_INCLUDE_TIM
-//#define PIOS_INCLUDE_SERVO
+#define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_SYS
 #define PIOS_INCLUDE_USART
@@ -64,7 +63,7 @@
 #define PIOS_INCLUDE_HMC5983
 #define PIOS_HMC5983_HAS_GPIOS
 #define PIOS_INCLUDE_MS5611_SPI
-//#define PIOS_INCLUDE_HMC5883
+#define PIOS_INCLUDE_HMC5883
 #define FLASH_FREERTOS
 
 /* Com systems to include */
@@ -90,22 +89,19 @@
 #define PIOS_INCLUDE_SBUS
 #define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_GCSRCVR
-//#define PIOS_INCLUDE_PWM
+#define PIOS_INCLUDE_PWM
 
 #define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_FLASH_INTERNAL
 #define PIOS_INCLUDE_LOGFS_SETTINGS
-
-/* Other Interfaces */
-//#define PIOS_INCLUDE_I2C_ESC
 
 /* Flags that alter behaviors - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 //#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
 
 /* Alarm Thresholds */
-#define HEAP_LIMIT_WARNING		750
-#define HEAP_LIMIT_CRITICAL		400
+#define HEAP_LIMIT_WARNING		    750
+#define HEAP_LIMIT_CRITICAL		    400
 #define IRQSTACK_LIMIT_WARNING		150
 #define IRQSTACK_LIMIT_CRITICAL		80
 #define CPULOAD_LIMIT_WARNING		80

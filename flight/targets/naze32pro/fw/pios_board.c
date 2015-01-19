@@ -394,10 +394,10 @@ void PIOS_Board_Init(void) {
     ///////////////////////////////////////////////////////////////////////////
 
     #if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg)) {
+	if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}
-	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
+	if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0)
 		panic(6);
     #endif
 
@@ -1119,7 +1119,7 @@ void PIOS_Board_Init(void) {
 	if (Magnetometer == HWNAZE32PRO_MAGNETOMETER_EXTERNAL)
 	{
 		#if defined(PIOS_INCLUDE_HMC5883)
-		if (PIOS_HMC5883_Init(pios_i2c_usart1_adapter_id, &pios_hmc5883_external_cfg) != 0)
+		if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) != 0)
 			panic(7);
 
 		if (PIOS_HMC5883_Test() != 0)

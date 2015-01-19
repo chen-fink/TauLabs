@@ -5,11 +5,11 @@
  * @addtogroup Sparky Tau Labs Sparky support files
  * @{
  *
- * @file       STM32F30x_Sparky.c 
+ * @file       STM32F30x_Sparky.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Board header file for Sparky board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -97,9 +97,9 @@ TIM8  |           |           |           |
 // PIOS_I2C
 // See also pios_board.c
 //------------------------
-#define PIOS_I2C_MAX_DEVS				2
-extern uint32_t pios_i2c_flexi_id;
-#define PIOS_I2C_MAIN_ADAPTER			(pios_i2c_flexi_id)	//this is dirty and should be removed in favor a cleaner sensor api
+#define PIOS_I2C_MAX_DEVS				1
+extern uint32_t pios_i2c_external_id;
+#define PIOS_I2C_MAIN_ADAPTER			(pios_i2c_external_id)	//this is dirty and should be removed in favor a cleaner sensor api
 
 //-------------------------
 // PIOS_COM
@@ -114,7 +114,7 @@ extern uintptr_t pios_com_vcp_id;
 extern uintptr_t pios_com_mavlink_id;
 extern uintptr_t pios_com_hott_id;
 extern uintptr_t pios_com_frsky_sensor_hub_id;
-extern uintptr_t pios_com_lighttelemetry_id; 
+extern uintptr_t pios_com_lighttelemetry_id;
 extern uintptr_t pios_com_frsky_sport_id;
 
 #define PIOS_COM_GPS                    (pios_com_gps_id)
@@ -144,7 +144,7 @@ extern uintptr_t pios_com_debug_id;
 
 //-------------------------
 // System Settings
-// 
+//
 // See also system_stm32f30x.c
 //-------------------------
 //These macros are deprecated
