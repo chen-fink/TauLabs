@@ -58,7 +58,7 @@ static const struct pios_led pios_leds[] = {
 		.pin = {
 			.gpio = GPIOB,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_12,
+				.GPIO_Pin   = GPIO_Pin_10,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
@@ -1109,11 +1109,10 @@ static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.oversampling = 32,
 	.number_of_used_pins = 2,
 	.adc_pins = (struct adc_pin[]){
-		{GPIOA,GPIO_Pin_4,ADC_Channel_1,false},
-		{GPIOA,GPIO_Pin_5,ADC_Channel_2,false},
+		{GPIOA,GPIO_Pin_4,ADC_Channel_1,true},
+		{GPIOA,GPIO_Pin_5,ADC_Channel_2,true},
 	},
-	.adc_dev_master = ADC1,
-	.adc_dev_slave  = ADC2,
+	.adc_dev_master = ADC2,
 };
 
 #endif /* PIOS_INCLUDE_ADC */
