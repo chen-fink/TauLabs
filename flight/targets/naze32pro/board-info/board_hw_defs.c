@@ -217,12 +217,18 @@ static const struct pios_i2c_adapter_cfg pios_i2c_external_cfg = {
   .remap = GPIO_AF_4,
   .init = {
     .I2C_Mode                = I2C_Mode_I2C,
-    .I2C_OwnAddress1         = 0,
+    .I2C_OwnAddress1         = 0x00,
     .I2C_Ack                 = I2C_Ack_Enable,
     .I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit,
     .I2C_DigitalFilter       = 0x00,
-    .I2C_AnalogFilter        = I2C_AnalogFilter_Enable,
-    .I2C_Timing              = 0x20400D29,
+    .I2C_AnalogFilter        = I2C_AnalogFilter_Disable,
+    .I2C_Timing              = 0x20400D29,  // Generated from I2C_Timing_Configuration_V1.0.1.xls
+                                            // SYSCLK:          72 MHz
+                                            // Fast Mode:      400 kHz
+                                            // Rise Time:      100 nS
+                                            // Fall Time:       10 nS
+                                            // Analog Filter:  Disabled
+                                            // Digital Filter:   0
   },
   .transfer_timeout_ms = 50,
   .scl = {
@@ -231,8 +237,8 @@ static const struct pios_i2c_adapter_cfg pios_i2c_external_cfg = {
 			.GPIO_Pin   = GPIO_Pin_8,
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
-            .GPIO_OType = GPIO_OType_PP,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_OType = GPIO_OType_OD,
+            .GPIO_PuPd  = GPIO_PuPd_UP,
     },
 	.pin_source = GPIO_PinSource8,
   },
@@ -242,8 +248,8 @@ static const struct pios_i2c_adapter_cfg pios_i2c_external_cfg = {
 			.GPIO_Pin   = GPIO_Pin_9,
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
-            .GPIO_OType = GPIO_OType_PP,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_OType = GPIO_OType_OD,
+            .GPIO_PuPd  = GPIO_PuPd_UP,
     },
 	.pin_source = GPIO_PinSource9,
   },
@@ -1089,30 +1095,32 @@ static struct pios_pwm_cfg pios_pwm_cfg = {
 static struct pios_internal_adc_cfg internal_adc_cfg = {
 	.dma = {
 		.irq = {
-			.flags   = (DMA1_FLAG_TC1 | DMA1_FLAG_TE1 | DMA1_FLAG_HT1 | DMA1_FLAG_GL1),
+			.flags   = (DMA2_FLAG_TC1 | DMA2_FLAG_TE1 | DMA2_FLAG_HT1 | DMA2_FLAG_GL1),
 			.init    = {
-				.NVIC_IRQChannel                   = DMA1_Channel1_IRQn,
+				.NVIC_IRQChannel                   = DMA2_Channel1_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
 				.NVIC_IRQChannelSubPriority        = 0,
 				.NVIC_IRQChannelCmd                = ENABLE,
 			},
 		},
 		.rx = {
-			.channel = DMA1_Channel1,
+			.channel = DMA2_Channel1,
 			.init    = {
 				.DMA_Priority           = DMA_Priority_High,
 			},
 		}
 	},
-	.half_flag = DMA1_IT_HT1,
-	.full_flag = DMA1_IT_TC1,
+	.half_flag = DMA2_IT_HT1,
+	.full_flag = DMA2_IT_TC1,
+
 	.oversampling = 32,
+
 	.number_of_used_pins = 2,
-	.adc_pins = (struct adc_pin[]){
-		{GPIOA,GPIO_Pin_4,ADC_Channel_1,true},
-		{GPIOA,GPIO_Pin_5,ADC_Channel_2,true},
-	},
+
+	.adc_pins = (struct adc_pin[]){	{GPIOA,GPIO_Pin_4,ADC_Channel_1,true},
+		                            {GPIOA,GPIO_Pin_5,ADC_Channel_2,true}, },
 	.adc_dev_master = ADC2,
+	.adc_dev_slave  = NULL,
 };
 
 #endif /* PIOS_INCLUDE_ADC */

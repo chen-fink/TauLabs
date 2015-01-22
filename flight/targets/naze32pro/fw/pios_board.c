@@ -152,6 +152,7 @@ static const struct pios_hmc5983_cfg pios_hmc5983_cfg = {
 #if defined(PIOS_INCLUDE_HMC5883)
 #include "pios_hmc5883_priv.h"
 static const struct pios_hmc5883_cfg pios_hmc5883_external_cfg = {
+	.exti_cfg            = NULL,
 	.M_ODR               = PIOS_HMC5883_ODR_75,
 	.Meas_Conf           = PIOS_HMC5883_MEASCONF_NORMAL,
 	.Gain                = PIOS_HMC5883_GAIN_1_9,
@@ -394,6 +395,10 @@ void PIOS_Board_Init(void) {
     ///////////////////////////////////////////////////////////////////////////
 
     #if defined(PIOS_INCLUDE_I2C)
+    RCC_I2CCLKConfig(RCC_I2C1CLK_SYSCLK);  // Switch I2C clock from HSI to SYSCLK.  I2C1 is the external I2C port.
+                                           // Might be better to make this call in the beginning of PIOS_I2C_Init,
+                                           // but that would force changes into the other STM32F3 targets.
+
 	if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}
@@ -1121,6 +1126,8 @@ void PIOS_Board_Init(void) {
 		#if defined(PIOS_INCLUDE_HMC5883)
 		if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) != 0)
 			panic(7);
+
+		PIOS_WDG_Clear();
 
 		if (PIOS_HMC5883_Test() != 0)
 			panic(8);
