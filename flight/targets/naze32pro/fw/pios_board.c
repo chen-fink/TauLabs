@@ -327,15 +327,20 @@ static void PIOS_Board_configure_hsum(const struct pios_usart_cfg *pios_usart_hs
 
 /**
  * Indicate a target-specific error code when a component fails to initialize
- * 1 pulse  - MPU6000 - no irq
- * 2 pulses - MPU6000 - test failed
- * 3 pulses - HMC5983 - no irq
- * 4 pulses - HMC5983 - test failed
- * 5 pulses - Flash
- * 6 pulses - External I2C bus locked
- * 7 pulses - HMC5883 - no irq
- * 8 pulses - HMC5883 - test failed
+ *  1 pulse:  MPU6000 - PIOS_MPU6000_Init failed
+ *  2 pulses: MPU6000 - PIOS_MPU6000_Test failed
+ *  3 pulses: HMC5983 - PIOS_HMC5983_Init failed
+ *  4 pulses: HMC5983 - PIOS_HMC5983_Test failed
+ *  5 pulses: Flash   - PIOS_Flash_Internal_Init failed
+ *                    - PIOS_FLASHFS_Logfs_Init failed (settings)
+ *                    - PIOS_FLASHFS_Logfs_Init failed (waypoints)
+ *  6 pulses: I2C     - External I2C bus locked
+ *  7 pulses: HMC5883 - PIOS_HMC5883_Init failed
+ *  8 pulses: HMC5883 - PIOS_HMC5883_Test failed
+ *  9 pulses: ADC     - PIOS_INTERNAL_ADC_Init failed
+ * 10 pulses: ADC     - PIOS_ADC_Init failed
  */
+
 void panic(int32_t code)
 {
 	while(1)
@@ -1001,10 +1006,15 @@ void PIOS_Board_Init(void) {
     #if defined(PIOS_INCLUDE_ADC)
 	if(number_of_adc_ports > 0) {
 		internal_adc_cfg.number_of_used_pins = number_of_adc_ports;
+
 		uint32_t internal_adc_id;
-		if(PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0)
+		if(PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0) {
 			PIOS_Assert(0);
-		PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id);
+			panic(9);
+		}
+
+		if(PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id) < 0)
+		    panic(10);
 	}
     #endif /* PIOS_INCLUDE_ADC */
 
@@ -1015,8 +1025,6 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 	///////////////////////////////////////////////////////////////////////////
-
-    //PIOS_SENSORS_Init();
 
     #if defined(PIOS_INCLUDE_MPU6000)
 	if (PIOS_MPU6000_Init(pios_spi_internal_id, 0, &pios_mpu6000_cfg) != 0)
