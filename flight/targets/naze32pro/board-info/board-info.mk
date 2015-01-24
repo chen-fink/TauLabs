@@ -6,7 +6,7 @@ HW_TYPE             := 0x00		# seems to be unused
 
 MCU                 := cortex-m4
 CHIP                := STM32F303VCT
-BOARD               := STM32F30x_SPARKY
+BOARD               := STM32F30x_NAZE32PRO
 MODEL               := HD
 MODEL_SUFFIX        := 
 

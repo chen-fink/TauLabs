@@ -1,13 +1,13 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup MiscTargets Misc Targets
  * @{
- * @addtogroup Sparky Tau Labs Sparky support files
+ * @addtogroup Naze32Pro Tau Labs Naze32Pro support files
  * @{
  *
- * @file       STM32F30x_Sparky.c
+ * @file       pios_board.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board header file for Sparky board.
+ * @brief      Board header file for Naze32Pro board.
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -28,8 +28,8 @@
  */
 
 
-#ifndef STM32F30X_SPARKY_H_
-#define STM32F30X_SPARKY_H_
+#ifndef STM32F30X_NAZE32PRO_H_
+#define STM32F30X_NAZE32PRO_H_
 
 #include <stdbool.h>
 
@@ -237,7 +237,7 @@ extern uintptr_t pios_internal_adc_id;
 //-------------------------
 #define PIOS_USB_ENABLED				1 /* Should remove all references to this */
 
-#endif /* STM32F30X_SPARKY_H_ */
+#endif /* STM32F30X_NAZE32PRO_H_ */
 
 
 /**

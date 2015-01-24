@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup MiscTargets Misc Targets
  * @{
- * @addtogroup Sparky Tau Labs Sparky support files
+ * @addtogroup Naze32Pro Tau Labs Naze32Pro support files
  * @{
  *
  * @file       pios_board.c

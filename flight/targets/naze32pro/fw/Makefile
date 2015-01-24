@@ -5,7 +5,7 @@
 # @{
 # @addtogroup
 # @{
-# @brief Makefile to build firmware for Sparky.
+# @brief Makefile to build firmware for Naze32Pro.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
