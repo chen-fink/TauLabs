@@ -1089,7 +1089,7 @@ static struct pios_pwm_cfg pios_pwm_cfg = {
 #include "pios_internal_adc_priv.h"
 
 /**
- * ADC0 : PA4 ADC2_IN1
+ * ADC0 : PA4 ADC2_IN1   Battery Voltage (On board 11K / 1K divider)
  * ADC1 : PA5 ADC2_IN2
  */
 static struct pios_internal_adc_cfg internal_adc_cfg = {
@@ -1106,7 +1106,7 @@ static struct pios_internal_adc_cfg internal_adc_cfg = {
 		.rx = {
 			.channel = DMA2_Channel1,
 			.init    = {
-				.DMA_Priority           = DMA_Priority_High,
+				.DMA_Priority = DMA_Priority_High,
 			},
 		}
 	},
@@ -1117,8 +1117,8 @@ static struct pios_internal_adc_cfg internal_adc_cfg = {
 
 	.number_of_used_pins = 2,
 
-	.adc_pins = (struct adc_pin[]){	{GPIOA,GPIO_Pin_4,ADC_Channel_1,true},
-		                            {GPIOA,GPIO_Pin_5,ADC_Channel_2,true}, },
+	.adc_pins = (struct adc_pin[]){	{GPIOA,GPIO_Pin_4,ADC_Channel_1, true},
+		                            {GPIOA,GPIO_Pin_5,ADC_Channel_2, true}, },
 	.adc_dev_master = ADC2,
 	.adc_dev_slave  = NULL,
 };
