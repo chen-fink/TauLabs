@@ -349,27 +349,23 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_LED */
 
 #if defined(PIOS_INCLUDE_I2C)
-	if (PIOS_I2C_Init(&pios_i2c_internal_adapter_id, &pios_i2c_internal_adapter_cfg)) {
+	if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}
-	if (PIOS_I2C_CheckClear(pios_i2c_internal_adapter_id) != 0)
+	if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
 		panic(5);
 #endif
 
 #if defined(PIOS_INCLUDE_SPI)
-	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
-		PIOS_DEBUG_Assert(0);
-	}
-	if (PIOS_SPI_Init(&pios_spi_gyro_accel_id, &pios_spi_gyro_accel_cfg)) {
+	if (PIOS_SPI_Init(&pios_spi_internal_id, &pios_spi_internal_cfg)) {
 		PIOS_Assert(0);
 	}
 #endif
 
+    ///////////////////////////////////////////////////////////////////////////
 
-#if defined(PIOS_INCLUDE_FLASH)
+    #if defined(PIOS_INCLUDE_FLASH)
 	/* Inititialize all flash drivers */
-	if (PIOS_Flash_Jedec_Init(&pios_external_flash_id, pios_spi_flash_id, 0, &flash_mx25_cfg) != 0)
-		panic(1);
 	if (PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg) != 0)
 		panic(1);
 
@@ -380,11 +376,13 @@ void PIOS_Board_Init(void) {
 	PIOS_FLASH_register_partition_table(flash_partition_table, num_partitions);
 
 	/* Mount all filesystems */
-	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
+	if (PIOS_FLASHFS_Logfs_Init(&pios_uavo_settings_fs_id, &flashfs_internal_settings_cfg, FLASH_PARTITION_LABEL_SETTINGS) != 0)
 		panic(1);
-	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
+	if (PIOS_FLASHFS_Logfs_Init(&pios_waypoints_settings_fs_id, &flashfs_internal_waypoints_cfg, FLASH_PARTITION_LABEL_WAYPOINTS) != 0)
 		panic(1);
-#endif	/* PIOS_INCLUDE_FLASH */
+    #endif	/* PIOS_INCLUDE_FLASH */
+
+    ///////////////////////////////////////////////////////////////////////////
 
 	/* Initialize the task monitor library */
 	TaskMonitorInitialize();
@@ -611,11 +609,11 @@ void PIOS_Board_Init(void) {
 		break;
 	case HWAQ32_UART1_I2C:
 #if defined(PIOS_INCLUDE_I2C)
-		if (PIOS_I2C_Init(&pios_i2c_usart1_adapter_id, &pios_i2c_usart1_adapter_cfg)) {
+		if (PIOS_I2C_Init(&pios_i2c_internal_id, &pios_i2c_internal_cfg)) {
 			PIOS_Assert(0);
 		}
 
-		if (PIOS_I2C_CheckClear(pios_i2c_usart1_adapter_id) != 0)
+		if (PIOS_I2C_CheckClear(pios_i2c_internal_id) != 0)
 			panic(6);
 
 #if defined(PIOS_INCLUDE_HMC5883)
@@ -625,7 +623,7 @@ void PIOS_Board_Init(void) {
 
 			if (Magnetometer == HWAQ32_MAGNETOMETER_EXTERNALI2CUART1) {
 				// init sensor
-				if (PIOS_HMC5883_Init(pios_i2c_usart1_adapter_id, &pios_hmc5883_external_cfg) != 0)
+				if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_external_cfg) != 0)
 					panic(8);
 				if (PIOS_HMC5883_Test() != 0)
 					panic(8);
@@ -881,10 +879,10 @@ void PIOS_Board_Init(void) {
 		break;
 	case HWAQ32_UART3_I2C:
 #if defined(PIOS_INCLUDE_I2C)
-		if (PIOS_I2C_Init(&pios_i2c_usart3_adapter_id, &pios_i2c_usart3_adapter_cfg)) {
+		if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
 			PIOS_Assert(0);
 		}
-		if (PIOS_I2C_CheckClear(pios_i2c_usart3_adapter_id) != 0)
+		if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0)
 			panic(7);
 
 #if defined(PIOS_INCLUDE_HMC5883)
@@ -894,7 +892,7 @@ void PIOS_Board_Init(void) {
 
 			if (Magnetometer == HWAQ32_MAGNETOMETER_EXTERNALI2CUART3) {
 				// init sensor
-				if (PIOS_HMC5883_Init(pios_i2c_usart3_adapter_id, &pios_hmc5883_external_cfg) != 0)
+				if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) != 0)
 					panic(9);
 				if (PIOS_HMC5883_Test() != 0)
 					panic(9);
@@ -1373,7 +1371,7 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MPU6000)
-	if (PIOS_MPU6000_Init(pios_spi_gyro_accel_id, 0, &pios_mpu6000_cfg) != 0)
+	if (PIOS_MPU6000_Init(pios_spi_internal_id, 0, &pios_mpu6000_cfg) != 0)
 		panic(2);
 	if (PIOS_MPU6000_Test() != 0)
 		panic(2);
@@ -1449,7 +1447,7 @@ void PIOS_Board_Init(void) {
 		HwAQ32MagnetometerGet(&Magnetometer);
 
 		if (Magnetometer == HWAQ32_MAGNETOMETER_INTERNAL) {
-			if (PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0)
+			if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0)
 				panic(3);
 			if (PIOS_HMC5883_Test() != 0)
 				panic(3);
@@ -1481,7 +1479,7 @@ void PIOS_Board_Init(void) {
 	PIOS_WDG_Clear();
 
 #if defined(PIOS_INCLUDE_MS5611)
-	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_adapter_id) != 0)
+	if (PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_id) != 0)
 		panic(4);
 	if (PIOS_MS5611_Test() != 0)
 		panic(4);

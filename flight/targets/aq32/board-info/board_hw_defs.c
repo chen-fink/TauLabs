@@ -5,12 +5,12 @@
  * @addtogroup Quanton Quanton support files
  * @{
  *
- * @file       board_hw_defs.c 
+ * @file       board_hw_defs.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Defines board specific static initializers for hardware for the
  *             Quanton board.
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -27,41 +27,43 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
- 
+
 #include <pios_config.h>
 #include <pios_board_info.h>
+
+///////////////////////////////////////////////////////////////////////////////
 
 #if defined(PIOS_INCLUDE_LED)
 
 #include <pios_led_priv.h>
 static const struct pios_led pios_leds[] = {
-	[PIOS_LED_RED] = {
+	[PIOS_LED_HEARTBEAT] = {
 		.pin = {
-			.gpio = GPIOC,
+			.gpio = GPIOE,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_13,
+				.GPIO_Pin   = GPIO_Pin_5,
 				.GPIO_Speed = GPIO_Speed_2MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL,
 			},
 		},
 		.remap = 0,
-		.active_high = false,
+		.active_high = true,
 	},
-	[PIOS_LED_BLUE] = {
+	[PIOS_LED_ALARM] = {
 		.pin = {
-			.gpio = GPIOC,
+			.gpio = GPIOE,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_14,
+				.GPIO_Pin   = GPIO_Pin_6,
 				.GPIO_Speed = GPIO_Speed_2MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd  = GPIO_PuPd_NOPULL,
 			},
 		},
 		.remap = 0,
-		.active_high = false,
+		.active_high = true,
 	},
 };
 
@@ -77,144 +79,22 @@ const struct pios_led_cfg * PIOS_BOARD_HW_DEFS_GetLedCfg (uint32_t board_revisio
 
 #endif	/* PIOS_INCLUDE_LED */
 
+///////////////////////////////////////////////////////////////////////////////
 
 #if defined(PIOS_INCLUDE_SPI)
 #include <pios_spi_priv.h>
 
-/* SPI2 Interface
- *      - Used for flash communications
- */
-void PIOS_SPI_flash_irq_handler(void);
-void DMA1_Stream3_IRQHandler(void) __attribute__((alias("PIOS_SPI_flash_irq_handler")));
-
-static const struct pios_spi_cfg pios_spi_flash_cfg = {
-	.regs = SPI2,
-	.remap = GPIO_AF_SPI2,
-	.init = {
-		.SPI_Mode              = SPI_Mode_Master,
-		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
-		.SPI_DataSize          = SPI_DataSize_8b,
-		.SPI_NSS               = SPI_NSS_Soft,
-		.SPI_FirstBit          = SPI_FirstBit_MSB,
-		.SPI_CRCPolynomial     = 7,
-		.SPI_CPOL              = SPI_CPOL_High,
-		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,	//@ APB1 PCLK1 42MHz / 2 == 21MHz
-	},
-	.use_crc = false,
-	.dma = {
-		.irq = {
-			// Note this is the stream ID that triggers interrupts (in this case RX)
-			.flags = (DMA_IT_TCIF3 | DMA_IT_TEIF3 | DMA_IT_HTIF3),
-			.init = {
-				.NVIC_IRQChannel = DMA1_Stream3_IRQn,
-				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
-				.NVIC_IRQChannelSubPriority = 0,
-				.NVIC_IRQChannelCmd = ENABLE,
-			},
-		},
-		
-		.rx = {
-			.channel = DMA1_Stream3,
-			.init = {
-				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI2->DR),
-				.DMA_DIR                = DMA_DIR_PeripheralToMemory,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Normal,
-				.DMA_Priority           = DMA_Priority_Medium,
-				//TODO: Enable FIFO
-				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
-                .DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
-                .DMA_MemoryBurst        = DMA_MemoryBurst_Single,
-                .DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
-			},
-		},
-		.tx = {
-			.channel = DMA1_Stream4,
-			.init = {
-				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI2->DR),
-				.DMA_DIR                = DMA_DIR_MemoryToPeripheral,
-				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
-				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
-				.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte,
-				.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte,
-				.DMA_Mode               = DMA_Mode_Normal,
-				.DMA_Priority           = DMA_Priority_Medium,
-				.DMA_FIFOMode           = DMA_FIFOMode_Disable,
-                .DMA_FIFOThreshold      = DMA_FIFOThreshold_Full,
-                .DMA_MemoryBurst        = DMA_MemoryBurst_Single,
-                .DMA_PeripheralBurst    = DMA_PeripheralBurst_Single,
-			},
-		},
-	},
-	.sclk = {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_13,
-			.GPIO_Speed = GPIO_Speed_100MHz,
-			.GPIO_Mode = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL
-		},
-		.pin_source = GPIO_PinSource13,
-	},
-	.miso = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_2,
-			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL
-		},
-		.pin_source = GPIO_PinSource2,
-	},
-	.mosi = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_3,
-			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode = GPIO_Mode_AF,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_NOPULL
-		},
-		.pin_source = GPIO_PinSource3,
-	},
-	.slave_count = 1,
-	.ssel = { {
-		.gpio = GPIOB,
-		.init = {
-			.GPIO_Pin = GPIO_Pin_12,
-			.GPIO_Speed = GPIO_Speed_50MHz,
-			.GPIO_Mode  = GPIO_Mode_OUT,
-			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_UP
-		},
-	} },
-};
-
-uint32_t pios_spi_flash_id;
-void PIOS_SPI_flash_irq_handler(void)
-{
-	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_flash_id);
-}
-
-
-/* SPI1 Interface
+/* SPI3 Interface
  *      - Used for gyro communications
  */
-void PIOS_SPI_gyro_accel_irq_handler(void);
-void DMA2_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_gyro_accel_irq_handler")));
 
-static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
-	.regs = SPI1,
-	.remap = GPIO_AF_SPI1,
+void PIOS_SPI_internal_irq_handler(void);
+
+void DMA2_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_internal_irq_handler")));
+
+static const struct pios_spi_cfg pios_spi_internal_cfg = {
+	.regs = SPI3,
+	.remap = GPIO_AF_SPI3,
 	.init = {
 		.SPI_Mode              = SPI_Mode_Master,
 		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
@@ -232,7 +112,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 			// Note this is the stream ID that triggers interrupts (in this case RX)
 			.flags = (DMA_IT_TCIF0 | DMA_IT_TEIF0 | DMA_IT_HTIF0),
 			.init = {
-				.NVIC_IRQChannel = DMA2_Stream0_IRQn,
+				.NVIC_IRQChannel = DMA1_Stream0_IRQn,
 				.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
 				.NVIC_IRQChannelSubPriority = 0,
 				.NVIC_IRQChannelCmd = ENABLE,
@@ -240,10 +120,10 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 		},
 
 		.rx = {
-			.channel = DMA2_Stream0,
+			.channel = DMA1_Stream0,
 			.init = {
-				.DMA_Channel            = DMA_Channel_3,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI1->DR),
+				.DMA_Channel            = DMA_Channel_0,
+				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
 				.DMA_DIR                = DMA_DIR_PeripheralToMemory,
 				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
 				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
@@ -259,10 +139,10 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 			},
 		},
 		.tx = {
-			.channel = DMA2_Stream3,
+			.channel = DMA1_Stream5,
 			.init = {
-				.DMA_Channel            = DMA_Channel_3,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI1->DR),
+				.DMA_Channel            = DMA_Channel_0,
+				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
 				.DMA_DIR                = DMA_DIR_MemoryToPeripheral,
 				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
 				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
@@ -278,75 +158,73 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 		},
 	},
 	.sclk = {
-		.gpio = GPIOA,
+		.gpio = GPIOC,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_5,
+			.GPIO_Pin = GPIO_Pin_10,
 			.GPIO_Speed = GPIO_Speed_100MHz,
 			.GPIO_Mode = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
-		.pin_source = GPIO_PinSource5,
+		.pin_source = GPIO_PinSource10,
 	},
 	.miso = {
-		.gpio = GPIOA,
+		.gpio = GPIOC,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_6,
+			.GPIO_Pin = GPIO_Pin_11,
 			.GPIO_Speed = GPIO_Speed_100MHz,
 			.GPIO_Mode = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
-		.pin_source = GPIO_PinSource6,
+		.pin_source = GPIO_PinSource11,
 	},
 	.mosi = {
-		.gpio = GPIOA,
+		.gpio = GPIOC,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_7,
+			.GPIO_Pin = GPIO_Pin_12,
 			.GPIO_Speed = GPIO_Speed_100MHz,
 			.GPIO_Mode = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
-		.pin_source = GPIO_PinSource7,
+		.pin_source = GPIO_PinSource12,
 	},
 	.slave_count = 1,
 	.ssel = { {
-		.gpio = GPIOC,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_4,
+			.GPIO_Pin = GPIO_Pin_8,
 			.GPIO_Speed = GPIO_Speed_100MHz,
 			.GPIO_Mode  = GPIO_Mode_OUT,
 			.GPIO_OType = GPIO_OType_PP,
-			.GPIO_PuPd = GPIO_PuPd_UP
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
 	} },
 };
 
-uint32_t pios_spi_gyro_accel_id;
-void PIOS_SPI_gyro_accel_irq_handler(void)
+uint32_t pios_spi_internal_id;
+void PIOS_SPI_internal_irq_handler(void)
 {
 	/* Call into the generic code to handle the IRQ for this specific device */
-	PIOS_SPI_IRQ_Handler(pios_spi_gyro_accel_id);
+	PIOS_SPI_IRQ_Handler(pios_spi_internal_id);
 }
 
 #endif	/* PIOS_INCLUDE_SPI */
 
+///////////////////////////////////////////////////////////////////////////////
 
 #if defined(PIOS_INCLUDE_I2C)
 
 #include <pios_i2c_priv.h>
 
-/*
- * I2C Adapters
- */
+void PIOS_I2C_internal_ev_irq_handler(void);
+void PIOS_I2C_internal_er_irq_handler(void);
 
-void PIOS_I2C_usart1_ev_irq_handler(void);
-void PIOS_I2C_usart1_er_irq_handler(void);
-void I2C1_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart1_ev_irq_handler")));
-void I2C1_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart1_er_irq_handler")));
+void I2C1_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_ev_irq_handler")));
+void I2C1_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_er_irq_handler")));
 
-static const struct pios_i2c_adapter_cfg pios_i2c_usart1_adapter_cfg = {
+static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
   .regs = I2C1,
   .remap = GPIO_AF_I2C1,
   .init = {
@@ -365,7 +243,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart1_adapter_cfg = {
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
             .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_PuPd  = GPIO_PuPd_UP,
     },
 	.pin_source = GPIO_PinSource6,
   },
@@ -376,7 +254,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart1_adapter_cfg = {
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
             .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_PuPd  = GPIO_PuPd_UP,
     },
 	.pin_source = GPIO_PinSource7,
   },
@@ -400,28 +278,28 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart1_adapter_cfg = {
   },
 };
 
-uint32_t pios_i2c_usart1_adapter_id;
-void PIOS_I2C_usart1_ev_irq_handler(void)
+uint32_t pios_i2c_internal_id;
+void PIOS_I2C_internal_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_usart1_adapter_id);
+  PIOS_I2C_EV_IRQ_Handler(pios_i2c_internal_id);
 }
 
-void PIOS_I2C_usart1_er_irq_handler(void)
+void PIOS_I2C_internal_er_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_usart1_adapter_id);
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_internal_id);
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
+void PIOS_I2C_external_ev_irq_handler(void);
+void PIOS_I2C_external_er_irq_handler(void);
 
+void I2C2_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_external_ev_irq_handler")));
+void I2C2_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_external_er_irq_handler")));
 
-void PIOS_I2C_usart3_ev_irq_handler(void);
-void PIOS_I2C_usart3_er_irq_handler(void);
-void I2C2_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart3_ev_irq_handler")));
-void I2C2_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart3_er_irq_handler")));
-
-static const struct pios_i2c_adapter_cfg pios_i2c_usart3_adapter_cfg = {
+static const struct pios_i2c_adapter_cfg pios_i2c_external_cfg = {
   .regs = I2C2,
   .remap = GPIO_AF_I2C2,
   .init = {
@@ -440,7 +318,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart3_adapter_cfg = {
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
             .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_PuPd  = GPIO_PuPd_UP,
     },
 	.pin_source = GPIO_PinSource10,
   },
@@ -451,7 +329,7 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart3_adapter_cfg = {
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
             .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_PuPd  = GPIO_PuPd_UP,
     },
 	.pin_source = GPIO_PinSource11,
   },
@@ -475,133 +353,45 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart3_adapter_cfg = {
   },
 };
 
-uint32_t pios_i2c_usart3_adapter_id;
-void PIOS_I2C_usart3_ev_irq_handler(void)
+uint32_t pios_i2c_external_id;
+void PIOS_I2C_external_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_usart3_adapter_id);
+  PIOS_I2C_EV_IRQ_Handler(pios_i2c_external_id);
 }
 
-void PIOS_I2C_usart3_er_irq_handler(void)
+void PIOS_I2C_external_er_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_usart3_adapter_id);
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_external_id);
 }
-
-
-
-void PIOS_I2C_internal_ev_irq_handler(void);
-void PIOS_I2C_internal_er_irq_handler(void);
-void I2C3_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_ev_irq_handler")));
-void I2C3_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_er_irq_handler")));
-
-static const struct pios_i2c_adapter_cfg pios_i2c_internal_adapter_cfg = {
-  .regs = I2C3,
-  .remap = GPIO_AF_I2C3,
-  .init = {
-    .I2C_Mode                = I2C_Mode_I2C,
-    .I2C_OwnAddress1         = 0,
-    .I2C_Ack                 = I2C_Ack_Enable,
-    .I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit,
-    .I2C_DutyCycle           = I2C_DutyCycle_2,
-    .I2C_ClockSpeed          = 400000,	/* bits/s */
-  },
-  .transfer_timeout_ms = 50,
-  .scl = {
-    .gpio = GPIOA,
-    .init = {
-			.GPIO_Pin = GPIO_Pin_8,
-            .GPIO_Mode  = GPIO_Mode_AF,
-            .GPIO_Speed = GPIO_Speed_50MHz,
-            .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
-    },
-	.pin_source = GPIO_PinSource8,
-  },
-  .sda = {
-    .gpio = GPIOC,
-    .init = {
-			.GPIO_Pin = GPIO_Pin_9,
-            .GPIO_Mode  = GPIO_Mode_AF,
-            .GPIO_Speed = GPIO_Speed_50MHz,
-            .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
-    },
-	.pin_source = GPIO_PinSource9,
-  },
-  .event = {
-    .flags   = 0,		/* FIXME: check this */
-    .init = {
-			.NVIC_IRQChannel = I2C3_EV_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-    },
-  },
-  .error = {
-    .flags   = 0,		/* FIXME: check this */
-    .init = {
-			.NVIC_IRQChannel = I2C3_ER_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGHEST,
-			.NVIC_IRQChannelSubPriority = 0,
-			.NVIC_IRQChannelCmd = ENABLE,
-    },
-  },
-};
-
-uint32_t pios_i2c_internal_adapter_id;
-void PIOS_I2C_internal_ev_irq_handler(void)
-{
-  /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_internal_adapter_id);
-}
-
-void PIOS_I2C_internal_er_irq_handler(void)
-{
-  /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_internal_adapter_id);
-}
-
-
 
 #endif /* PIOS_INCLUDE_I2C */
+
+///////////////////////////////////////////////////////////////////////////////
 
 #if defined(PIOS_INCLUDE_FLASH)
 #include "pios_flashfs_logfs_priv.h"
 
-static const struct flashfs_logfs_cfg flashfs_settings_cfg = {
+static const struct flashfs_logfs_cfg flashfs_internal_settings_cfg = {
 	.fs_magic      = 0x3bb141cf,
-	.arena_size    = 0x00010000, /* 256 * slot size */
+	.arena_size    = 0x00004000, /* 64 * slot size = 16K bytes = 1 sector */
 	.slot_size     = 0x00000100, /* 256 bytes */
 };
 
-static const struct flashfs_logfs_cfg flashfs_waypoints_cfg = {
+static const struct flashfs_logfs_cfg flashfs_internal_waypoints_cfg = {
 	.fs_magic      = 0x9a365a64,
-	.arena_size    = 0x00010000, /* 1024 * slot size */
+	.arena_size    = 0x00004000, /* 64 * slot size = 16K bytes = 1 sector */
 	.slot_size     = 0x00000040, /* 64 bytes */
 };
 
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
-#include "pios_flash_jedec_priv.h"
-
-static const struct pios_flash_jedec_cfg flash_mx25_cfg = {
-	.expect_manufacturer = JEDEC_MANUFACTURER_MACRONIX,
-	.expect_memorytype   = 0x20,
-	.expect_capacity     = 0x16,
-	.sector_erase        = 0x20,
-};
-#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
-
-#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 #include "pios_flash_internal_priv.h"
 
 static const struct pios_flash_internal_cfg flash_internal_cfg = {
 };
-#endif	/* PIOS_INCLUDE_FLASH_INTERNAL */
 
 #include "pios_flash_priv.h"
 
-#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 static const struct pios_flash_sector_range stm32f4_sectors[] = {
 	{
 		.base_sector = 0,
@@ -629,39 +419,36 @@ static const struct pios_flash_chip pios_flash_chip_internal = {
 	.sector_blocks = stm32f4_sectors,
 	.num_blocks    = NELEMENTS(stm32f4_sectors),
 };
-#endif	/* PIOS_INCLUDE_FLASH_INTERNAL */
-
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
-static const struct pios_flash_sector_range mx25_sectors[] = {
-	{
-		.base_sector = 0,
-		.last_sector = 1023,
-		.sector_size = FLASH_SECTOR_4KB,
-	},
-};
-
-uintptr_t pios_external_flash_id;
-static const struct pios_flash_chip pios_flash_chip_external = {
-	.driver        = &pios_jedec_flash_driver,
-	.chip_id       = &pios_external_flash_id,
-	.page_size     = 256,
-	.sector_blocks = mx25_sectors,
-	.num_blocks    = NELEMENTS(mx25_sectors),
-};
-#endif /* PIOS_INCLUDE_FLASH_JEDEC */
 
 static const struct pios_flash_partition pios_flash_partition_table[] = {
-#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 	{
 		.label        = FLASH_PARTITION_LABEL_BL,
 		.chip_desc    = &pios_flash_chip_internal,
 		.first_sector = 0,
 		.last_sector  = 1,
 		.chip_offset  = 0,
-		.size         = (1 - 0 + 1) * FLASH_SECTOR_16KB,
+		.size         = (1 - 0 + 1) * FLASH_SECTOR_16KB, // 32KB
 	},
 
-	/* NOTE: sectors 2-4 of the internal flash are currently unallocated */
+	{
+		.label        = FLASH_PARTITION_LABEL_SETTINGS,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 2,
+		.last_sector  = 2,
+		.chip_offset  = (2 * FLASH_SECTOR_16KB),
+		.size         = (2 - 2 + 1) * FLASH_SECTOR_16KB, // 16KB
+	},
+
+	{
+		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
+		.chip_desc    = &pios_flash_chip_internal,
+		.first_sector = 3,
+		.last_sector  = 3,
+		.chip_offset  = (3 * FLASH_SECTOR_16KB),
+		.size         = (3 - 3 + 1) * FLASH_SECTOR_16KB, // 16KB
+	},
+
+	/* NOTE: sectors 4 of the internal flash are currently unallocated */
 
 	{
 		.label        = FLASH_PARTITION_LABEL_FW,
@@ -673,28 +460,6 @@ static const struct pios_flash_partition pios_flash_partition_table[] = {
 	},
 
 	/* NOTE: sectors 7-11 of the internal flash are currently unallocated */
-
-#endif /* PIOS_INCLUDE_FLASH_INTERNAL */
-
-#if defined(PIOS_INCLUDE_FLASH_JEDEC)
-	{
-		.label        = FLASH_PARTITION_LABEL_SETTINGS,
-		.chip_desc    = &pios_flash_chip_external,
-		.first_sector = 0,
-		.last_sector  = 511,
-		.chip_offset  = 0,
-		.size         = (511 - 0 + 1) * FLASH_SECTOR_4KB,
-	},
-
-	{
-		.label        = FLASH_PARTITION_LABEL_WAYPOINTS,
-		.chip_desc    = &pios_flash_chip_external,
-		.first_sector = 512,
-		.last_sector  = 1023,
-		.chip_offset  = (512 * FLASH_SECTOR_4KB),
-		.size         = (1023 - 512 + 1) * FLASH_SECTOR_4KB,
-	},
-#endif	/* PIOS_INCLUDE_FLASH_JEDEC */
 };
 
 const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32_t board_revision, uint32_t * num_partitions)
@@ -706,6 +471,8 @@ const struct pios_flash_partition * PIOS_BOARD_HW_DEFS_GetPartitionTable (uint32
 }
 
 #endif	/* PIOS_INCLUDE_FLASH */
+
+///////////////////////////////////////////////////////////////////////////////
 
 #if defined(PIOS_INCLUDE_USART)
 

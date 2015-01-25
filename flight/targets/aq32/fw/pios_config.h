@@ -5,11 +5,11 @@
  * @addtogroup Quanton Quanton support files
  * @{
  *
- * @file       pios_config.h 
+ * @file       pios_config.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2014
  * @brief      Board specific options that modify PiOS capabilities
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -59,13 +59,14 @@
 /* Select the sensors to include */
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_MPU6000
-#define PIOS_INCLUDE_ETASV3
-#define PIOS_INCLUDE_MPXV5004
-#define PIOS_INCLUDE_MPXV7002
+//#define PIOS_INCLUDE_ETASV3
+//#define PIOS_INCLUDE_MPXV5004
+//#define PIOS_INCLUDE_MPXV7002
 #define PIOS_MPU6000_ACCEL
 #define PIOS_MPU6000_SIMPLE_INIT_SEQUENCE
 #define PIOS_INCLUDE_MS5611
 #define FLASH_FREERTOS
+
 /* Com systems to include */
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_COM_TELEM
