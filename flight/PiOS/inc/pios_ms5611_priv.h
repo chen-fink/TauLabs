@@ -43,11 +43,14 @@ enum pios_ms5611_osr {
 //! Configuration structure for the MS5611 driver
 struct pios_ms5611_cfg {
 	//! The oversampling setting for the baro, higher produces
-	//! less frequenct cleaner data
+	//! less frequent cleaner data
 	enum pios_ms5611_osr oversampling;
 
 	//! How many samples of pressure for each temperature measurement
 	uint32_t temperature_interleaving;
+	
+	//! I2C address can either be 0x76 or 0x77
+	uint8_t use_0x76_address;
 };
 
 int32_t PIOS_MS5611_Init(const struct pios_ms5611_cfg * cfg, int32_t i2c_device);

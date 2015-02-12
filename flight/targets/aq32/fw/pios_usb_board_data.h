@@ -9,7 +9,7 @@
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
  * @brief      Defines for board specific usb information
  * @see        The GNU Public License (GPL) Version 3
- * 
+ *
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -39,8 +39,8 @@
 #include "pios_usb_defs.h" 	/* USB_* macros */
 
 
-#define PIOS_USB_BOARD_VENDOR_ID 0x0fda		//Quantec Networks GmbH
-#define PIOS_USB_BOARD_PRODUCT_ID 0x0100	//quanton flight control rev. 1
+#define PIOS_USB_BOARD_VENDOR_ID  0x0FDA
+#define PIOS_USB_BOARD_PRODUCT_ID 0x0100
 #define PIOS_USB_BOARD_DEVICE_VER USB_OP_DEVICE_VER(0, USB_OP_BOARD_MODE_FW)
 #define PIOS_USB_BOARD_SN_SUFFIX "+FW"
 

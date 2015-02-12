@@ -1,13 +1,13 @@
 /**
  ******************************************************************************
- * @addtogroup TauLabsTargets Tau Labs Targets
+ * @addtogroup MiscTargets Misc Targets
  * @{
- * @addtogroup Quanton Quanton support files
+ * @addtogroup AQ32 AQ32 support files
  * @{
  *
- * @file       STM32F4xx_Quanton.c
+ * @file       STM32F4xx_AQ32.c
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2012-2013
- * @brief      Board specific defines for Quanton
+ * @brief      Board specific defines for AQ32
  * @see        The GNU Public License (GPL) Version 3
  *
  *****************************************************************************/
@@ -228,19 +228,17 @@ extern uintptr_t pios_com_debug_id;
 //-------------------------
 #define PIOS_ADC_SUB_DRIVER_MAX_INSTANCES       3
 
-// PIOS_ADC_PinGet(0) = IN7
-// PIOS_ADC_PinGet(1) = IN8
 //-------------------------
 #define PIOS_DMA_PIN_CONFIG                                                                   \
 {                                                                                             \
-	{ GPIOA, GPIO_Pin_0,     ADC_Channel_0 },                                                 \
-	{ GPIOA, GPIO_Pin_1,     ADC_Channel_1 },                                                 \
+	{ GPIOC, GPIO_Pin_0,     ADC_Channel_10 },                /* Internal Voltage Monitor */  \
+	{ GPIOC, GPIO_Pin_4,     ADC_Channel_14 },                /* External Voltage Monitor */  \
+	{ GPIOC, GPIO_Pin_5,     ADC_Channel_15 },                /* External Current Monitor */  \
 	{ NULL,  0,              ADC_Channel_Vrefint },           /* Voltage reference */         \
-	{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
 	{ NULL,  0,              ADC_Channel_TempSensor },        /* Temperature sensor */        \
 }
 
-/* we have to do all this to satisfy the PIOS_ADC_MAX_SAMPLES define in pios_adc.h */
+/* we have to do all this to satisfy the PIOS_ADC_MAX_SAMPLES define in pios_internal_adc.h */
 /* which is annoying because this then determines the rate at which we generate buffer turnover events */
 /* the objective here is to get enough buffer space to support 100Hz averaging rate */
 #define PIOS_ADC_NUM_CHANNELS           5

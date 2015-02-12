@@ -1,17 +1,13 @@
 /**
  ******************************************************************************
- * @file       taulabsplugin.cpp
-<<<<<<< HEAD
+ * @file       aq32.h
  * @author     Tau Labs, http://taulabs.org, Copyright (C) 2013
-=======
- * @author     Tau Labs, http://github.com/TauLabs, Copyright (C) 2013.
->>>>>>> GCS: Add board plugin for taulabs
  *
  * @addtogroup GCSPlugins GCS Plugins
  * @{
- * @addtogroup Boards_TauLabsPlugin Tau Labs boards support Plugin
+ * @addtogroup Boards_MiscPlugin Misc boards support Plugin
  * @{
- * @brief Plugin to support boards by the Tau Labs project
+ * @brief Plugin to support miscellaneous boards
  *****************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or modify
@@ -28,43 +24,28 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#ifndef AQ32_H
+#define AQ32_H
 
-#include "miscplugin.h"
-#include "aq32.h"
-#include "naze32pro.h"
-#include <QtPlugin>
+#include <coreplugin/iboardtype.h>
 
+class IBoardType;
 
-MiscPlugin::MiscPlugin()
+class AQ32 : public Core::IBoardType
 {
-   // Do nothing
-}
+public:
+    AQ32();
+    virtual ~AQ32();
 
-MiscPlugin::~MiscPlugin()
-{
-   // Do nothing
-}
+    virtual QString shortName();
+    virtual QString boardDescription();
+    virtual bool queryCapabilities(BoardCapabilities capability);
+    virtual QStringList getSupportedProtocols();
+    virtual QPixmap getBoardPicture();
+    virtual QString getHwUAVO();
+    virtual int queryMaxGyroRate();
 
-bool MiscPlugin::initialize(const QStringList& args, QString *errMsg)
-{
-   Q_UNUSED(args);
-   Q_UNUSED(errMsg);
-   return true;
-}
+};
 
-void MiscPlugin::extensionsInitialized()
-{
-    /**
-     * Create the board objects here.
-     *
-     */
-    AQ32* aq32 = new AQ32();
-    addAutoReleasedObject(aq32);
 
-    Naze32Pro* naze32pro = new Naze32Pro();
-    addAutoReleasedObject(naze32pro);
-}
-
-void MiscPlugin::shutdown()
-{
-}
+#endif // AQ32_H
