@@ -478,6 +478,12 @@ void UploaderGadgetWidget::onBootloaderDetected()
                 case DFU_PARTITION_WAYPOINTS:
                     name = "Waypoints";
                     break;
+                case DFU_PARTITION_LOG:
+                    name = "Log";
+                    break;
+                case DFU_PARTITION_OTA:
+                    name = "OTA";
+                    break;
                 default:
                     name = QString::number(index);
                     break;
@@ -1497,5 +1503,5 @@ void UploaderGadgetWidget::onAutoUpdateCount(int i)
  */
 void UploaderGadgetWidget::openHelp()
 {
-    QDesktopServices::openUrl( QUrl("http://wiki.taulabs.org/OnlineHelp:-Uploader-Plugin", QUrl::StrictMode) );
+    QDesktopServices::openUrl( QUrl("https://github.com/TauLabs/TauLabs/wiki/OnlineHelp:-Uploader-Plugin", QUrl::StrictMode) );
 }

@@ -68,6 +68,7 @@ static int32_t PIOS_HMC5983_Read(uint8_t address, uint8_t *buffer, uint8_t len);
 static int32_t PIOS_HMC5983_Write(uint8_t address, uint8_t buffer);
 static void PIOS_HMC5983_Task(void *parameters);
 
+
 static struct hmc5983_dev *dev;
 
 /**
@@ -292,7 +293,7 @@ static int32_t PIOS_HMC5983_ReadMag(struct pios_sensor_mag_data *mag_data)
 	mag_y = ((int16_t)((uint16_t) buffer[4] << 8) + buffer[5]) * 1000 / sensitivity;
 
 	// Define "0" when the fiducial is in the front left of the board
-	switch (dev->cfg->orientation) {
+	switch (dev->cfg->Orientation) {
 	case PIOS_HMC5983_TOP_0DEG:
 		mag_data->x = -mag_x;
 		mag_data->y = mag_y;
@@ -312,6 +313,26 @@ static int32_t PIOS_HMC5983_ReadMag(struct pios_sensor_mag_data *mag_data)
 		mag_data->x = mag_y;
 		mag_data->y = mag_x;
 		mag_data->z = -mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_0DEG:
+		mag_data->x = -mag_x;
+		mag_data->y = -mag_y;
+		mag_data->z = mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_90DEG:
+		mag_data->x = -mag_y;
+		mag_data->y = mag_x;
+		mag_data->z = mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_180DEG:
+		mag_data->x = mag_x;
+		mag_data->y = mag_y;
+		mag_data->z = mag_z;
+		break;
+	case PIOS_HMC5983_BOTTOM_270DEG:
+		mag_data->x = mag_y;
+		mag_data->y = -mag_x;
+		mag_data->z = mag_z;
 		break;
 	}
 
