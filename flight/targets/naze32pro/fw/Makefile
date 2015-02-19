@@ -207,6 +207,9 @@ else
 CFLAGS += -Os
 endif
 
+ifeq ($(ERASE_FLASH), YES)
+CDEFS += -DERASE_FLASH
+endif
 
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)

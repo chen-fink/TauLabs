@@ -7,4 +7,4 @@ aq32_cpuarch := f4
 
 # Short name of this board (used to display board name in parallel builds)
 # Should be exactly 4 characters long.
-quanton_short := 'aq32'
+aq32_short := 'aq32'
