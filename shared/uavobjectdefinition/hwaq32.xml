@@ -49,9 +49,7 @@
 		<field name="Uart4" units="function" type="enum" elements="1"  defaultvalue="Disabled">
 			<options>
 				<option>Disabled</option>
-				<option>DSM2</option>
-				<option>DSMX (10bit)</option>
-				<option>DSMX (11bit)</option>
+				<option>DSM</option>
 				<option>HoTT SUMD</option>
 				<option>HoTT SUMH</option>
 			</options>
@@ -62,9 +60,7 @@
 				<option>Disabled</option>
 				<option>Telemetry</option>
 				<option>GPS</option>
-				<option>DSM2</option>
-				<option>DSMX (10bit)</option>
-				<option>DSMX (11bit)</option>
+				<option>DSM</option>
 				<option>DebugConsole</option>
 				<option>ComBridge</option>
 				<option>MavLinkTX</option>

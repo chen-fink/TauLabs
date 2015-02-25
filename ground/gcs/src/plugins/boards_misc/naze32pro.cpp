@@ -145,14 +145,8 @@ bool Naze32Pro::setInputOnPort(enum InputType type, int port_num)
     case INPUT_TYPE_SBUS:
         settings.RcvrPort = HwNaze32Pro::RCVRPORT_SBUS;
         break;
-    case INPUT_TYPE_DSM2:
-        settings.RcvrPort = HwNaze32Pro::RCVRPORT_DSM2;
-        break;
-    case INPUT_TYPE_DSMX10BIT:
-        settings.RcvrPort = HwNaze32Pro::RCVRPORT_DSMX10BIT;
-        break;
-    case INPUT_TYPE_DSMX11BIT:
-        settings.RcvrPort = HwNaze32Pro::RCVRPORT_DSMX11BIT;
+    case INPUT_TYPE_DSM:
+        settings.RcvrPort = HwNaze32Pro::RCVRPORT_DSM;
         break;
     default:
         return false;
@@ -188,12 +182,8 @@ enum Core::IBoardType::InputType Naze32Pro::getInputOnPort(int port_num)
         return INPUT_TYPE_PPM;
     case HwNaze32Pro::RCVRPORT_SBUS:
         return INPUT_TYPE_SBUS;
-    case HwNaze32Pro::RCVRPORT_DSM2:
-        return INPUT_TYPE_DSM2;
-    case HwNaze32Pro::RCVRPORT_DSMX10BIT:
-        return INPUT_TYPE_DSMX10BIT;
-    case HwNaze32Pro::RCVRPORT_DSMX11BIT:
-        return INPUT_TYPE_DSMX11BIT;
+    case HwNaze32Pro::RCVRPORT_DSM:
+        return INPUT_TYPE_DSM;
     default:
         return INPUT_TYPE_UNKNOWN;
     }

@@ -139,7 +139,7 @@ static const struct pios_hmc5983_cfg pios_hmc5983_cfg = {
 	.Meas_Conf   = PIOS_HMC5983_MEASCONF_NORMAL,
 	.Gain        = PIOS_HMC5983_GAIN_1_9,
 	.Mode        = PIOS_HMC5983_MODE_CONTINUOUS,
-	.orientation = PIOS_HMC5983_TOP_180DEG,
+	.Orientation = PIOS_HMC5983_TOP_180DEG,
 };
 
 #endif /* PIOS_INCLUDE_HMC5983 */
@@ -275,7 +275,7 @@ static void PIOS_Board_configure_com (const struct pios_usart_cfg *usart_port_cf
 
 #ifdef PIOS_INCLUDE_DSM
 static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm_cfg, const struct pios_dsm_cfg *pios_dsm_cfg,
-		const struct pios_com_driver *pios_usart_com_driver,enum pios_dsm_proto *proto,
+		const struct pios_com_driver *pios_usart_com_driver,
 		ManualControlSettingsChannelGroupsOptions channelgroup,uint8_t *bind)
 {
 	uintptr_t pios_usart_dsm_id;
@@ -285,7 +285,7 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 
 	uintptr_t pios_dsm_id;
 	if (PIOS_DSM_Init(&pios_dsm_id, pios_dsm_cfg, pios_usart_com_driver,
-			pios_usart_dsm_id, *proto, *bind)) {
+			pios_usart_dsm_id, *bind)) {
 		PIOS_Assert(0);
 	}
 
@@ -330,7 +330,7 @@ static void PIOS_Board_configure_hsum(const struct pios_usart_cfg *pios_usart_hs
  *  1 pulse:  MPU6000 - PIOS_MPU6000_Init failed
  *  2 pulses: MPU6000 - PIOS_MPU6000_Test failed
  *  3 pulses: HMC5983 - PIOS_HMC5983_Init failed
- *  4 pulses: HMC5983 - PIOS_HMC5983_Test failed
+ *  4 pulses: Not Used
  *  5 pulses: Flash   - PIOS_Flash_Internal_Init failed
  *                    - PIOS_FLASHFS_Logfs_Init failed (settings)
  *                    - PIOS_FLASHFS_Logfs_Init failed (waypoints)
@@ -803,9 +803,11 @@ void PIOS_Board_Init(void) {
 
 	/* Configure the rcvr port */
 	uint8_t hw_rcvrport;
-
 	HwNaze32ProRcvrPortGet(&hw_rcvrport);
 
+	uint8_t hw_DSMxBind;
+	HwNaze32ProDSMxBindGet(&hw_DSMxBind);
+	
 	switch (hw_rcvrport)
 	{
 	case HWNAZE32PRO_RCVRPORT_DISABLED:
@@ -826,37 +828,11 @@ void PIOS_Board_Init(void) {
         #endif	/* PIOS_INCLUDE_PPM */
 		break;
 
-	case HWNAZE32PRO_RCVRPORT_DSM2:
-	case HWNAZE32PRO_RCVRPORT_DSMX10BIT:
-	case HWNAZE32PRO_RCVRPORT_DSMX11BIT:
-        #if defined(PIOS_INCLUDE_DSM)
+	case HWNAZE32PRO_RCVRPORT_DSM:
+	    #if defined(PIOS_INCLUDE_DSM)
 		{
-			enum pios_dsm_proto proto;
-
-			switch (hw_rcvrport)
-			{
-			case HWNAZE32PRO_RCVRPORT_DSM2:
-				proto = PIOS_DSM_PROTO_DSM2;
-				break;
-
-			case HWNAZE32PRO_RCVRPORT_DSMX10BIT:
-				proto = PIOS_DSM_PROTO_DSMX10BIT;
-				break;
-
-			case HWNAZE32PRO_RCVRPORT_DSMX11BIT:
-				proto = PIOS_DSM_PROTO_DSMX11BIT;
-				break;
-
-			default:
-				PIOS_Assert(0);
-				break;
-			}
-			uint8_t hw_DSMxBind;
-
-			HwNaze32ProDSMxBindGet(&hw_DSMxBind);
-
 			PIOS_Board_configure_dsm(&pios_rcvr_dsm_hsum_cfg, &pios_rcvr_dsm_bind_cfg, &pios_usart_com_driver,
-				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hw_DSMxBind);
+				MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMRCVRPORT, &hw_DSMxBind);
 		}
         #endif	/* PIOS_INCLUDE_DSM */
 		break;
@@ -1123,9 +1099,6 @@ void PIOS_Board_Init(void) {
 		    panic(3);
 
 	    PIOS_WDG_Clear();
-
-	    if (PIOS_HMC5983_Test() != 0)
-		    panic(4);
         #endif /* PIOS_INCLUDE_HMC5983 */
 	}
 
