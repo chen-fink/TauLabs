@@ -54,7 +54,7 @@ AQ32::AQ32(void)
     channelBanks[1] = QVector<int> () << 3 << 4;
     channelBanks[2] = QVector<int> () << 5 << 6;
     channelBanks[3] = QVector<int> () << 7 << 8;
-	channelBanks[3] = QVector<int> () << 9 << 10 << 11 << 12;
+	channelBanks[4] = QVector<int> () << 9 << 10 << 11 << 12;
 }
 
 AQ32::~AQ32()

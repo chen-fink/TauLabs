@@ -62,7 +62,7 @@ void PIOS_Board_Init() {
 	PIOS_LED_On(PIOS_LED_ALARM);
 
 #if defined(PIOS_INCLUDE_FLASH)
-	/* Inititialize all flash drivers */
+	/* Initialize all flash drivers */
 	PIOS_Flash_Internal_Init(&pios_internal_flash_id, &flash_internal_cfg);
 
 	/* Register the partition table */
@@ -75,7 +75,7 @@ void PIOS_Board_Init() {
 
 	/* Activate the HID-only USB configuration */
 	PIOS_USB_DESC_HID_ONLY_Init();
-
+	
 	uintptr_t pios_usb_id;
 	PIOS_USB_Init(&pios_usb_id, PIOS_BOARD_HW_DEFS_GetUsbCfg(bdinfo->board_rev));
 
@@ -90,6 +90,15 @@ void PIOS_Board_Init() {
 #endif	/* PIOS_INCLUDE_USB_HID && PIOS_INCLUDE_COM_MSG */
 
 	PIOS_USBHOOK_Activate();
-
+	
+	/* Issue USB Disconnect Pulse */
+	GPIO_Init(pios_usb_main_cfg.disconnect.gpio, (GPIO_InitTypeDef*)&pios_usb_main_cfg.disconnect.init);
+		
+	GPIO_ResetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
+		
+	PIOS_DELAY_WaitmS(200);
+		
+	GPIO_SetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
+		
 #endif	/* PIOS_INCLUDE_USB */
 }

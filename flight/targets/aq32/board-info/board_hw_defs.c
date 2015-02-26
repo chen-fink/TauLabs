@@ -1361,6 +1361,16 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 	},
 	.vsense = {
 		.gpio = NULL,
+	},
+	.disconnect = {
+		.gpio = GPIOD,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_11,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL,
+		},
 	}
 };
 

@@ -35,7 +35,7 @@
 #define PIOS_INCLUDE_BL_HELPER
 
 /* Enable/Disable PiOS Modules */
-//#define PIOS_INCLUDE_ADC
+#define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_DELAY
 #define PIOS_INCLUDE_I2C
 #define WDG_STATS_DIAGNOSTICS
@@ -60,9 +60,6 @@
 /* Select the sensors to include */
 #define PIOS_INCLUDE_HMC5883
 #define PIOS_INCLUDE_MPU6000
-//#define PIOS_INCLUDE_ETASV3
-//#define PIOS_INCLUDE_MPXV5004
-//#define PIOS_INCLUDE_MPXV7002
 #define PIOS_MPU6000_ACCEL
 #define PIOS_MPU6000_SIMPLE_INIT_SEQUENCE
 #define PIOS_INCLUDE_MS5611
@@ -97,12 +94,8 @@
 #define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_LOGFS_SETTINGS
 #define PIOS_INCLUDE_FLASH_INTERNAL
-//#define PIOS_INCLUDE_FLASH_JEDEC
 
-/* Other Interfaces */
-//#define PIOS_INCLUDE_I2C_ESC
-
-/* Flags that alter behaviors - mostly to lower resources for CC */
+/* Flags that alter behaviours - mostly to lower resources for CC */
 #define PIOS_INCLUDE_INITCALL           /* Include init call structures */
 #define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
 

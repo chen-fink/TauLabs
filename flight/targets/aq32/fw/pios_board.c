@@ -639,7 +639,21 @@ void PIOS_Board_Init(void) {
 	if (usb_hid_present || usb_cdc_present) {
 		PIOS_USBHOOK_Activate();
 	}
-    #endif	/* PIOS_INCLUDE_USB */
+    
+	/* Issue USB Disconnect Pulse */
+	PIOS_WDG_Clear();
+	
+	GPIO_Init(pios_usb_main_cfg.disconnect.gpio, (GPIO_InitTypeDef*)&pios_usb_main_cfg.disconnect.init);
+		
+	GPIO_ResetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
+		
+	PIOS_DELAY_WaitmS(200);
+		
+	GPIO_SetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
+	
+	PIOS_WDG_Clear();
+	
+	#endif	/* PIOS_INCLUDE_USB */
 
 	///////////////////////////////////////////////////////////////////////////
 
