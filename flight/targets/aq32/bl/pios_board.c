@@ -70,6 +70,10 @@ void PIOS_Board_Init() {
 #endif	/* PIOS_INCLUDE_FLASH */
 
 #if defined(PIOS_INCLUDE_USB)
+	/* Initialize USB disconnect GPIO */
+	GPIO_Init(pios_usb_main_cfg.disconnect.gpio, (GPIO_InitTypeDef*)&pios_usb_main_cfg.disconnect.init);
+	GPIO_SetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
+	
 	/* Initialize board specific USB data */
 	PIOS_USB_BOARD_DATA_Init();
 
@@ -92,8 +96,6 @@ void PIOS_Board_Init() {
 	PIOS_USBHOOK_Activate();
 	
 	/* Issue USB Disconnect Pulse */
-	GPIO_Init(pios_usb_main_cfg.disconnect.gpio, (GPIO_InitTypeDef*)&pios_usb_main_cfg.disconnect.init);
-		
 	GPIO_ResetBits(pios_usb_main_cfg.disconnect.gpio, pios_usb_main_cfg.disconnect.init.GPIO_Pin);
 		
 	PIOS_DELAY_WaitmS(200);
