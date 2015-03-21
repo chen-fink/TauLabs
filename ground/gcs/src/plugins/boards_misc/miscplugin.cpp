@@ -31,6 +31,7 @@
 
 #include "miscplugin.h"
 #include "aq32.h"
+#include "naze32.h"
 #include "naze32pro.h"
 #include <QtPlugin>
 
@@ -60,6 +61,9 @@ void MiscPlugin::extensionsInitialized()
      */
     AQ32* aq32 = new AQ32();
     addAutoReleasedObject(aq32);
+
+    Naze32* naze32 = new Naze32();
+    addAutoReleasedObject(naze32);
 
     Naze32Pro* naze32pro = new Naze32Pro();
     addAutoReleasedObject(naze32pro);

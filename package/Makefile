@@ -45,12 +45,12 @@ CLEAN_FLIGHT := YES
 endif
 
 # Set up targets
-ALL_BOARDS        := coptercontrol pipxtreme revolution revomini sparky freedom quanton colibri flyingf3 flyingf4 naze32pro aq32
-ALL_BOARDS_BU     := coptercontrol pipxtreme
+ALL_BOARDS        := coptercontrol pipxtreme revolution revomini sparky freedom quanton colibri flyingf3 flyingf4 naze32pro aq32 naze32
+ALL_BOARDS_BL     := coptercontrol pipxtreme revolution revomini sparky freedom quanton colibri flyingf3 flyingf4 naze32pro aq32
 FW_TARGETS        := $(addprefix fw_, $(ALL_BOARDS))
 FW_TARGETS_TOOLS  := $(addprefix fw_, $(ALL_BOARDS))
-BL_TARGETS        := $(addprefix bl_, $(ALL_BOARDS))
-BU_TARGETS        := $(addprefix bu_, $(ALL_BOARDS_BU))
+BL_TARGETS        := $(addprefix bl_, $(ALL_BOARDS_BL))
+BU_TARGETS        := $(addprefix bu_, $(ALL_BOARDS_BL))
 
 help:
 	@echo

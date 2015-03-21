@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/misc">
 	    <file>images/aq32.png</file>
+		<file>images/naze32.png</file>
         <file>images/naze32pro.png</file>
     </qresource>
 </RCC>

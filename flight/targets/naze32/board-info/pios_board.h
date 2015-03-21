@@ -153,6 +153,11 @@ extern uintptr_t pios_com_mavlink_id;
 #define PIOS_DSM_NUM_INPUTS				12
 
 //-------------------------
+// Receiver S.Bus input
+//-------------------------
+#define PIOS_SBUS_NUM_INPUTS			(16+2)
+
+//-------------------------
 // Servo outputs
 //-------------------------
 #define PIOS_SERVO_UPDATE_HZ			50

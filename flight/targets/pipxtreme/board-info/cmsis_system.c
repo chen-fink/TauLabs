@@ -201,6 +201,8 @@ static void SetSysClock(void);
   * @{
   */
 
+uint32_t hse_value = 8000000;
+
 /**
   * @brief  Setup the microcontroller system
   *         Initialize the Embedded Flash Interface, the PLL and update the 

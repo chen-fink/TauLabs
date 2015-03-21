@@ -6,7 +6,7 @@
 # @{
 # @addtogroup 
 # @{
-# @brief Makefile to build firmware for the CopterControl board.
+# @brief Makefile to build firmware for the Naze32 board.
 ###############################################################################
 #
 # This program is free software; you can redistribute it and/or modify
@@ -202,7 +202,7 @@ SRC += $(OPUAVSYNTHDIR)/camerastabsettings.c
 SRC += $(OPUAVSYNTHDIR)/cameradesired.c
 SRC += $(OPUAVSYNTHDIR)/gpsposition.c
 SRC += $(OPUAVSYNTHDIR)/gpsvelocity.c
-SRC += $(OPUAVSYNTHDIR)/hwcoptercontrol.c
+SRC += $(OPUAVSYNTHDIR)/hwnaze32.c
 SRC += $(OPUAVSYNTHDIR)/modulesettings.c
 SRC += $(OPUAVSYNTHDIR)/gcsreceiver.c
 SRC += $(OPUAVSYNTHDIR)/receiveractivity.c
@@ -262,10 +262,12 @@ SRC += $(PIOSSTM32F10X)/pios_flash_internal.c
 SRC += $(PIOSCOMMON)/pios_delay.c
 SRC += $(PIOSCOMMON)/pios_crc.c
 SRC += $(PIOSCOMMON)/pios_flashfs_logfs.c
-SRC += $(PIOSCOMMON)/pios_ms5611.c
 SRC += $(PIOSCOMMON)/pios_mpu6050.c
+SRC += $(PIOSCOMMON)/pios_hmc5883.c
+SRC += $(PIOSCOMMON)/pios_ms5611.c
 SRC += $(PIOSCOMMON)/pios_com.c
 SRC += $(PIOSCOMMON)/pios_rcvr.c
+SRC += $(PIOSCOMMON)/pios_sbus.c
 SRC += $(PIOSCOMMON)/pios_sensors.c
 SRC += $(PIOSCOMMON)/pios_gcsrcvr.c
 SRC += $(PIOSCOMMON)/printf-stdarg.c
