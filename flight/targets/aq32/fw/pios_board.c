@@ -204,6 +204,10 @@ uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 uintptr_t pios_com_debug_id;
 #endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
 
+///////////////////////////////////////////////////////////////////////////////
+
+bool external_mag_fail;
+
 uintptr_t pios_com_gps_id;
 uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_telem_rf_id;
@@ -361,7 +365,9 @@ void panic(int32_t code) {
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
-
+	bool use_internal_mag     = true;
+	bool external_mag_init_ok = false;
+	
 	/* Delay system */
 	PIOS_DELAY_Init();
 
@@ -1174,48 +1180,55 @@ void PIOS_Board_Init(void) {
 
 	#if defined(PIOS_INCLUDE_I2C)
     #if defined(PIOS_INCLUDE_HMC5883)
+    PIOS_WDG_Clear();
+
+    uint8_t Magnetometer;
+	HwAQ32MagnetometerGet(&Magnetometer);
+
+	if (Magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
 	{
-		uint8_t Magnetometer;
-		HwAQ32MagnetometerGet(&Magnetometer);
+		use_internal_mag = false;
+			
+		if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
+			if (PIOS_HMC5883_Test() == 0) {
+				// External mag configuration was successful, external mag is attached and powered
+				external_mag_init_ok = true;
+				
+				// setup sensor orientation
+				uint8_t ExtMagOrientation;
+				HwAQ32ExtMagOrientationGet(&ExtMagOrientation);
 
-		if (Magnetometer == HWAQ32_MAGNETOMETER_INTERNAL) {
-			if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0)
-				panic(6);
-			if (PIOS_HMC5883_Test() != 0)
-				panic(7);
-		}
-
-		if (Magnetometer == HWAQ32_MAGNETOMETER_EXTERNAL)
-		{
-            if (PIOS_I2C_Init(&pios_i2c_external_id, &pios_i2c_external_cfg)) {
-		        PIOS_DEBUG_Assert(0);
-	        }
-
-	        if (PIOS_I2C_CheckClear(pios_i2c_external_id) != 0)
-		        panic(11);
-
-			if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) != 0)
-				panic(9);
-			if (PIOS_HMC5883_Test() != 0)
-				panic(10);
-
-	        // setup sensor orientation
-			uint8_t ExtMagOrientation;
-			HwAQ32ExtMagOrientationGet(&ExtMagOrientation);
-
-			enum pios_hmc5883_orientation hmc5883_orientation = \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-				(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-				pios_hmc5883_external_cfg.Default_Orientation;
-			PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+				enum pios_hmc5883_orientation hmc5883_orientation = \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+					(ExtMagOrientation == HWAQ32_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+					pios_hmc5883_external_cfg.Default_Orientation;
+				PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+			}
 		}
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	
+	/* Set external mag fail flag if external mag fails to initialize */
+	external_mag_fail = !use_internal_mag && !external_mag_init_ok;
+	
+	///////////////////////////////////////////////////////////////////////////
+	
+	if ((Magnetometer == HWAQ32_MAGNETOMETER_INTERNAL) || external_mag_fail)
+	{
+		if (PIOS_HMC5883_Init(pios_i2c_internal_id, &pios_hmc5883_internal_cfg) != 0)
+			panic(6);
+		if (PIOS_HMC5883_Test() != 0)
+			panic(7);
+	}
+
+
     #endif
 
 	///////////////////////////////////////////////////////////////////////////

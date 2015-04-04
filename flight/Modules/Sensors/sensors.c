@@ -96,6 +96,11 @@ static float z_accel_offset = 0;
 static float Rsb[3][3] = {{0}}; //! Rotation matrix that transforms from the body frame to the sensor board frame
 static int8_t rotate = 0;
 
+#if defined (AQ32) || defined(NAZE32PRO) || defined(QUANTON) || defined(SPARKY)
+// indicates whether the external mag works
+extern bool external_mag_fail;
+#endif
+
 //! Select the algorithm to try and null out the magnetometer bias error
 static enum mag_calibration_algo mag_calibration_algo = MAG_CALIBRATION_PRELEMARI;
 
@@ -213,7 +218,11 @@ static void SensorsTask(void *parameters)
 			update_baro(&baro);
 		}
 
+		#if defined(AQ32) || defined(NAZE32PRO) || defined(QUANTON) || defined(SPARKY)
+		if ((good_runs > REQUIRED_GOOD_CYCLES) && !external_mag_fail)
+		#else
 		if (good_runs > REQUIRED_GOOD_CYCLES)
+		#endif
 			AlarmsClear(SYSTEMALARMS_ALARM_SENSORS);
 		else
 			good_runs++;

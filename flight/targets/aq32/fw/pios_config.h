@@ -123,6 +123,7 @@
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (6984538)
 
 #define REVOLUTION
+#define AQ32
 
 #endif /* PIOS_CONFIG_H */
 /**

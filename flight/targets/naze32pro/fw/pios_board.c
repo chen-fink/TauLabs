@@ -213,6 +213,10 @@ uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 uintptr_t pios_com_debug_id;
 #endif	/* PIOS_INCLUDE_DEBUG_CONSOLE */
 
+///////////////////////////////////////////////////////////////////////////////
+
+bool external_mag_fail;
+
 uintptr_t pios_com_aux_id;
 uintptr_t pios_com_gps_id;
 uintptr_t pios_com_telem_usb_id;
@@ -230,8 +234,6 @@ uintptr_t pios_uavo_settings_fs_id;
 uintptr_t pios_waypoints_settings_fs_id;
 
 uintptr_t pios_internal_adc_id;
-
-uintptr_t pios_can_id;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -335,10 +337,8 @@ static void PIOS_Board_configure_hsum(const struct pios_usart_cfg *pios_usart_hs
  *                    - PIOS_FLASHFS_Logfs_Init failed (settings)
  *                    - PIOS_FLASHFS_Logfs_Init failed (waypoints)
  *  6 pulses: I2C     - External I2C bus locked
- *  7 pulses: HMC5883 - PIOS_HMC5883_Init failed
- *  8 pulses: HMC5883 - PIOS_HMC5883_Test failed
- *  9 pulses: ADC     - PIOS_INTERNAL_ADC_Init failed
- * 10 pulses: ADC     - PIOS_ADC_Init failed
+ *  7 pulses: ADC     - PIOS_INTERNAL_ADC_Init failed
+ *  8 pulses: ADC     - PIOS_ADC_Init failed
  */
 
 void panic(int32_t code)
@@ -375,6 +375,8 @@ void panic(int32_t code)
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
+	bool use_internal_mag     = true;
+	bool external_mag_init_ok = false;
 
 	/* Delay system */
 	PIOS_DELAY_Init();
@@ -882,7 +884,6 @@ void PIOS_Board_Init(void) {
 		}
         #endif	/* PIOS_INCLUDE_SBUS */
 		break;
-		break;
 	}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -986,11 +987,11 @@ void PIOS_Board_Init(void) {
 		uint32_t internal_adc_id;
 		if(PIOS_INTERNAL_ADC_Init(&internal_adc_id, &internal_adc_cfg) < 0) {
 			PIOS_Assert(0);
-			panic(9);
+			panic(7);
 		}
 
 		if(PIOS_ADC_Init(&pios_internal_adc_id, &pios_internal_adc_driver, internal_adc_id) < 0)
-		    panic(10);
+		    panic(8);
 	}
     #endif /* PIOS_INCLUDE_ADC */
 
@@ -1092,7 +1093,44 @@ void PIOS_Board_Init(void) {
     uint8_t Magnetometer;
 	HwNaze32ProMagnetometerGet(&Magnetometer);
 
-	if (Magnetometer == HWNAZE32PRO_MAGNETOMETER_INTERNAL)
+	if (Magnetometer == HWNAZE32PRO_MAGNETOMETER_EXTERNAL)
+	{
+		use_internal_mag = false;
+			
+		#if defined(PIOS_INCLUDE_HMC5883)
+		if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) == 0) {
+			if (PIOS_HMC5883_Test() == 0) {
+				// External mag configuration was successful, external mag is attached and powered
+				external_mag_init_ok = true;
+				
+				// setup sensor orientation
+				uint8_t ExtMagOrientation;
+				HwNaze32ProExtMagOrientationGet(&ExtMagOrientation);
+
+				enum pios_hmc5883_orientation hmc5883_orientation = \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
+					(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
+					pios_hmc5883_external_cfg.Default_Orientation;
+				PIOS_HMC5883_SetOrientation(hmc5883_orientation);
+			}
+		}
+		#endif  /* PIOS_INCLUDE_HMC5883 */
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	
+	/* Set external mag fail flag if external mag fails to initialize */
+	external_mag_fail = !use_internal_mag && !external_mag_init_ok;
+	
+	///////////////////////////////////////////////////////////////////////////
+	
+	if ((Magnetometer == HWNAZE32PRO_MAGNETOMETER_INTERNAL) || external_mag_fail)
 	{
 		#if defined(PIOS_INCLUDE_HMC5983)
         if (PIOS_HMC5983_Init(pios_spi_internal_id, 1, &pios_hmc5983_cfg) != 0)
@@ -1100,35 +1138,6 @@ void PIOS_Board_Init(void) {
 
 	    PIOS_WDG_Clear();
         #endif /* PIOS_INCLUDE_HMC5983 */
-	}
-
-	if (Magnetometer == HWNAZE32PRO_MAGNETOMETER_EXTERNAL)
-	{
-		#if defined(PIOS_INCLUDE_HMC5883)
-		if (PIOS_HMC5883_Init(pios_i2c_external_id, &pios_hmc5883_external_cfg) != 0)
-			panic(7);
-
-		PIOS_WDG_Clear();
-
-		if (PIOS_HMC5883_Test() != 0)
-			panic(8);
-
-		// setup sensor orientation
-		uint8_t ExtMagOrientation;
-		HwNaze32ProExtMagOrientationGet(&ExtMagOrientation);
-
-		enum pios_hmc5883_orientation hmc5883_orientation = \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP0DEGCW)      ? PIOS_HMC5883_TOP_0DEG      : \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP90DEGCW)     ? PIOS_HMC5883_TOP_90DEG     : \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP180DEGCW)    ? PIOS_HMC5883_TOP_180DEG    : \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_TOP270DEGCW)    ? PIOS_HMC5883_TOP_270DEG    : \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM0DEGCW)   ? PIOS_HMC5883_BOTTOM_0DEG   : \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM90DEGCW)  ? PIOS_HMC5883_BOTTOM_90DEG  : \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM180DEGCW) ? PIOS_HMC5883_BOTTOM_180DEG : \
-			(ExtMagOrientation == HWNAZE32PRO_EXTMAGORIENTATION_BOTTOM270DEGCW) ? PIOS_HMC5883_BOTTOM_270DEG : \
-			pios_hmc5883_external_cfg.Default_Orientation;
-		PIOS_HMC5883_SetOrientation(hmc5883_orientation);
-		#endif  /* PIOS_INCLUDE_HMC5883 */
 	}
 
     ///////////////////////////////////////////////////////////////////////////

@@ -129,6 +129,7 @@
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (6984538)
 
 #define REVOLUTION
+#define QUANTON
 
 #endif /* PIOS_CONFIG_H */
 /**
