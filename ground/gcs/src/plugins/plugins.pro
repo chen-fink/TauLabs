@@ -367,3 +367,9 @@ plugin_boards_stm.subdir = boards_stm
 plugin_boards_stm.depends = plugin_coreplugin
 plugin_boards_stm.depends = plugin_uavobjects
 SUBDIRS += plugin_boards_stm
+
+# Misc boards
+plugin_boards_misc.subdir = boards_misc
+plugin_boards_misc.depends = plugin_coreplugin
+plugin_boards_misc.depends = plugin_uavobjects
+SUBDIRS += plugin_boards_misc
