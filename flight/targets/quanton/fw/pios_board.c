@@ -196,6 +196,8 @@ uintptr_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 uintptr_t pios_com_debug_id;
 #endif /* PIOS_INCLUDE_DEBUG_CONSOLE */
 
+bool external_mag_fail;
+
 uintptr_t pios_com_gps_id;
 uintptr_t pios_com_telem_usb_id;
 uintptr_t pios_com_telem_rf_id;
@@ -339,6 +341,8 @@ void panic(int32_t code) {
 #include <pios_board_info.h>
 
 void PIOS_Board_Init(void) {
+	bool use_internal_mag     = true;
+	bool external_mag_init_ok = false;
 
 	/* Delay system */
 	PIOS_DELAY_Init();
@@ -625,18 +629,17 @@ void PIOS_Board_Init(void) {
 
 		if (PIOS_I2C_CheckClear(pios_i2c_usart1_adapter_id) != 0)
 			panic(6);
-
 #if defined(PIOS_INCLUDE_HMC5883)
-		{
-			uint8_t Magnetometer;
-			HwQuantonMagnetometerGet(&Magnetometer);
+		uint8_t Magnetometer;
+		HwQuantonMagnetometerGet(&Magnetometer);
 
-			if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1) {
-				// init sensor
-				if (PIOS_HMC5883_Init(pios_i2c_usart1_adapter_id, &pios_hmc5883_external_cfg) != 0)
-					panic(8);
-				if (PIOS_HMC5883_Test() != 0)
-					panic(8);
+		if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1) {
+			use_internal_mag = false;
+			
+			if (PIOS_HMC5883_Init(pios_i2c_usart1_adapter_id, &pios_hmc5883_external_cfg) == 0) {
+				if (PIOS_HMC5883_Test() == 0)  
+					// External mag configuration was successful, external mag is attached and powered
+					external_mag_init_ok = true;
 			}
 		}
 #endif /* PIOS_INCLUDE_HMC5883 */
@@ -860,18 +863,17 @@ void PIOS_Board_Init(void) {
 		}
 		if (PIOS_I2C_CheckClear(pios_i2c_usart3_adapter_id) != 0)
 			panic(7);
-
 #if defined(PIOS_INCLUDE_HMC5883)
-		{
-			uint8_t Magnetometer;
-			HwQuantonMagnetometerGet(&Magnetometer);
+		uint8_t Magnetometer;
+		HwQuantonMagnetometerGet(&Magnetometer);
 
-			if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3) {
-				// init sensor
-				if (PIOS_HMC5883_Init(pios_i2c_usart3_adapter_id, &pios_hmc5883_external_cfg) != 0)
-					panic(9);
-				if (PIOS_HMC5883_Test() != 0)
-					panic(9);
+		if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3) {
+			use_internal_mag = false;
+			
+			if (PIOS_HMC5883_Init(pios_i2c_usart3_adapter_id, &pios_hmc5883_external_cfg) == 0) {
+				if (PIOS_HMC5883_Test() == 0)  
+					// External mag configuration was successful, external mag is attached and powered
+					external_mag_init_ok = true;
 			}
 		}
 #endif /* PIOS_INCLUDE_HMC5883 */
@@ -1248,7 +1250,6 @@ void PIOS_Board_Init(void) {
 		break;
 	}
 
-
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
 	uintptr_t pios_gcsrcvr_id;
@@ -1365,23 +1366,25 @@ void PIOS_Board_Init(void) {
 	PIOS_MPU6000_SetSampleRate(mpu6000_samplerate);
 #endif
 
-#if defined(PIOS_INCLUDE_I2C)
+	/* Set external mag fail flag if external mag fails to initialize */
+	external_mag_fail = !use_internal_mag && !external_mag_init_ok;
+
+	#if defined(PIOS_INCLUDE_I2C)
 #if defined(PIOS_INCLUDE_HMC5883)
 	{
 		uint8_t Magnetometer;
 		HwQuantonMagnetometerGet(&Magnetometer);
 
-		if (Magnetometer == HWQUANTON_MAGNETOMETER_INTERNAL) {
+		if ((Magnetometer == HWQUANTON_MAGNETOMETER_INTERNAL) || external_mag_fail) {
 			if (PIOS_HMC5883_Init(pios_i2c_internal_adapter_id, &pios_hmc5883_internal_cfg) != 0)
 				panic(3);
 			if (PIOS_HMC5883_Test() != 0)
 				panic(3);
 		}
 
-		if (Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART1 ||
-			Magnetometer == HWQUANTON_MAGNETOMETER_EXTERNALI2CUART3)
+		if (!use_internal_mag && external_mag_init_ok)
 		{
-			// setup sensor orientation
+			// setup external mag sensor orientation
 			uint8_t ExtMagOrientation;
 			HwQuantonExtMagOrientationGet(&ExtMagOrientation);
 
