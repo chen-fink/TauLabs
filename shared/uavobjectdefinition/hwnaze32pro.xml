@@ -45,14 +45,14 @@
 			</options>
 		</field>
 
-		<field name="OutPort" units="function" type="enum" elements="1" defaultvalue="PWM8">
+		<field name="OutPort" units="function" type="enum" elements="1" defaultvalue="PWM9">
 			<options>
-				<option>PWM8</option>
-				<option>PWM8+ADC1</option>
-				<option>PWM8+ADC2</option>
-				<option>PWM8+PWM_IN</option>
-				<option>PWM8+PWM_IN+ADC1</option>
-				<option>PWM8+PWM_IN+ADC2</option>
+				<option>PWM9</option>
+				<option>PWM9+ADC1</option>
+				<option>PWM9+ADC2</option>
+				<option>PWM9+PWM_IN</option>
+				<option>PWM9+PWM_IN+ADC1</option>
+				<option>PWM9+PWM_IN+ADC2</option>
 			</options>
 		</field>
 		

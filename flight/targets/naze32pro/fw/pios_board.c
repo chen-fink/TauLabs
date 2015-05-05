@@ -343,6 +343,7 @@ static void PIOS_Board_configure_hsum(const struct pios_usart_cfg *pios_usart_hs
 
 void panic(int32_t code)
 {
+#if defined(PIOS_LED_ALARM)
 	while(1)
 	{
 		for (int32_t i = 0; i < code; i++)
@@ -362,6 +363,7 @@ void panic(int32_t code)
 		PIOS_WDG_Clear();
 		PIOS_DELAY_WaitmS(100);
 	}
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -912,38 +914,38 @@ void PIOS_Board_Init(void) {
 
 	switch (hw_outport)
 	{
-	case HWNAZE32PRO_OUTPORT_PWM8:
-		number_of_pwm_outputs = 8;
+	case HWNAZE32PRO_OUTPORT_PWM9:
+		number_of_pwm_outputs = 9;
 		use_pwm_in            = false;
 		number_of_adc_ports   = 0;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM8ADC1:
-		number_of_pwm_outputs = 8;
+	case HWNAZE32PRO_OUTPORT_PWM9ADC1:
+		number_of_pwm_outputs = 9;
 		use_pwm_in            = false;
 		number_of_adc_ports   = 1;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM8ADC2:
-		number_of_pwm_outputs = 8;
+	case HWNAZE32PRO_OUTPORT_PWM9ADC2:
+		number_of_pwm_outputs = 9;
 		use_pwm_in            = false;
 		number_of_adc_ports   = 2;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM8PWM_IN:
-		number_of_pwm_outputs = 8;
+	case HWNAZE32PRO_OUTPORT_PWM9PWM_IN:
+		number_of_pwm_outputs = 9;
 		use_pwm_in            = true;
 		number_of_adc_ports   = 0;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM8PWM_INADC1:
-		number_of_pwm_outputs = 8;
+	case HWNAZE32PRO_OUTPORT_PWM9PWM_INADC1:
+		number_of_pwm_outputs = 9;
 		use_pwm_in            = true;
 		number_of_adc_ports   = 1;
 		break;
 
-	case HWNAZE32PRO_OUTPORT_PWM8PWM_INADC2:
-		number_of_pwm_outputs = 8;
+	case HWNAZE32PRO_OUTPORT_PWM9PWM_INADC2:
+		number_of_pwm_outputs = 9;
 		use_pwm_in            = true;
 		number_of_adc_ports   = 2;
 		break;

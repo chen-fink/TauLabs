@@ -45,19 +45,6 @@ static const struct pios_led pios_leds[] = {
 		.pin = {
 			.gpio = GPIOB,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_10,
-				.GPIO_Speed = GPIO_Speed_50MHz,
-				.GPIO_Mode  = GPIO_Mode_OUT,
-				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd  = GPIO_PuPd_NOPULL
-			},
-		},
-		.active_high = false,
-	},
-	[PIOS_LED_ALARM] = {
-		.pin = {
-			.gpio = GPIOB,
-			.init = {
 				.GPIO_Pin   = GPIO_Pin_12,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
@@ -67,6 +54,19 @@ static const struct pios_led pios_leds[] = {
 		},
 		.active_high = false,
 	},
+//	[PIOS_LED_ALARM] = {
+//		.pin = {
+//			.gpio = GPIOB,
+//			.init = {
+//				.GPIO_Pin   = GPIO_Pin_12,
+//				.GPIO_Speed = GPIO_Speed_50MHz,
+//				.GPIO_Mode  = GPIO_Mode_OUT,
+//				.GPIO_OType = GPIO_OType_PP,
+//				.GPIO_PuPd  = GPIO_PuPd_NOPULL
+//			},
+//		},
+//		.active_high = false,
+//	},
 };
 
 static const struct pios_led_cfg pios_led_cfg = {
@@ -830,6 +830,7 @@ static const struct pios_tim_clock_cfg tim_4_cfg = {
 	6:  TIM3_CH2  (PA7)
 	7:  TIM4_CH1  (PB6)
 	8:  TIM4_CH2  (PB7)
+	9:  TIM2_CH3  (PB10) - PWM Alarm Buzzer Use Only!!
  */
 
 static const struct pios_tim_channel pios_tim_output_pins[] = {
@@ -961,6 +962,22 @@ static const struct pios_tim_channel pios_tim_output_pins[] = {
 			.pin_source = GPIO_PinSource7,
 		},
 	},
+	{ // Ch9
+		.timer = TIM2,
+		.timer_chan = TIM_Channel_3,
+		.remap = GPIO_AF_1,
+		.pin = {
+			.gpio = GPIOB,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_10,
+				.GPIO_Speed = GPIO_Speed_2MHz,
+				.GPIO_Mode  = GPIO_Mode_AF,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd  = GPIO_PuPd_UP
+			},
+			.pin_source = GPIO_PinSource10,
+		},
+	},	
 };
 
 ///////////////////////////////////////////////////////////////////////////////
