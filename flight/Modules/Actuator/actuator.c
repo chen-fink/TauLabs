@@ -551,7 +551,7 @@ static bool set_channel(uint8_t mixer_channel, uint16_t value, const ActuatorSet
                         {
                             
                             // Decide what tune to play
-                            if (AlarmsGet(SYSTEMALARMS_ALARM_BATTERY) > SYSTEMALARMS_ALARM_WARNING) {
+                            if (AlarmsGet(SYSTEMALARMS_ALARM_BATTERY) >= SYSTEMALARMS_ALARM_WARNING) {
                                     newTune = 0b11110110110000;	// pause, short, short, short, long
                             } else if (AlarmsGet(SYSTEMALARMS_ALARM_GPS) >= SYSTEMALARMS_ALARM_WARNING) {
                                     newTune = 0x80000000;			// pause, short
